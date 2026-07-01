@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GreenWorks — Inspector Property Access Onboarding</title>
+<style>
+
+  :root {
+    --gw-green: #227038;
+    --gw-green-dark: #1a5429;
+    --gw-green-light: #e8f2eb;
+    --gw-blue: #124682;
+    --gw-blue-light: #e8eef5;
+    --gw-gold: #c6a047;
+    --gw-gold-light: #f9f3e6;
+    --gw-gray: #444444;
+    --gw-gray-light: #8c8d91;
+    --gw-red: #c0392b;
+    --gw-red-light: #fdecea;
+    --radius: 10px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f7f8f6; color: var(--gw-gray); font-size: 15px; line-height: 1.6; }
+
+  /* ── VIEWS ── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── HEADER ── */
+  .header { background: var(--gw-green); color: white; padding: 24px 20px 20px; text-align: center; border-bottom: 4px solid var(--gw-gold); }
+  .header-logo { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 6px; }
+  .header h1 { font-size: 22px; font-weight: 700; color: white; margin-bottom: 4px; }
+  .header p { font-size: 13px; color: rgba(255,255,255,0.8); }
+
+  /* ── LANDING (role select) ── */
+  .landing { max-width: 480px; margin: 40px auto; padding: 0 20px; }
+  .role-card {
+    background: white; border-radius: var(--radius); box-shadow: var(--shadow);
+    border: 2px solid transparent; padding: 28px 24px; margin-bottom: 16px;
+    cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .role-card:hover { border-color: var(--gw-green); transform: translateY(-2px); }
+  .role-card .role-icon { font-size: 36px; margin-bottom: 10px; }
+  .role-card h2 { font-size: 18px; font-weight: 700; color: var(--gw-blue); margin-bottom: 6px; }
+  .role-card p { font-size: 13px; color: var(--gw-gray-light); }
+
+  /* ── INSPECTOR NAME ENTRY ── */
+  .name-entry { max-width: 480px; margin: 40px auto; padding: 0 20px; }
+  .name-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px 28px; }
+  .name-card h2 { font-size: 20px; font-weight: 700; color: var(--gw-blue); margin-bottom: 6px; }
+  .name-card p { font-size: 13px; color: var(--gw-gray-light); margin-bottom: 20px; }
+  .field-group { margin-bottom: 16px; }
+  .field-group label { display: block; font-size: 12px; font-weight: 700; color: var(--gw-gray); letter-spacing: 0.5px; margin-bottom: 6px; text-transform: uppercase; }
+  .field-group input, .field-group select {
+    width: 100%; padding: 12px 14px; border: 1.5px solid #ddd; border-radius: 8px;
+    font-size: 15px; color: var(--gw-gray); outline: none; transition: border-color 0.2s;
+    font-family: inherit;
+  }
+  .field-group input:focus, .field-group select:focus { border-color: var(--gw-green); }
+  .btn-primary {
+    width: 100%; padding: 14px; background: var(--gw-green); color: white;
+    border: none; border-radius: 8px; font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: background 0.2s; font-family: inherit; margin-top: 8px;
+  }
+  .btn-primary:hover { background: var(--gw-green-dark); }
+  .btn-secondary {
+    background: none; border: none; color: var(--gw-gray-light); font-size: 13px;
+    cursor: pointer; margin-top: 12px; display: block; width: 100%; text-align: center;
+    font-family: inherit; padding: 8px;
+  }
+  .btn-secondary:hover { color: var(--gw-gray); }
+
+  /* ── INSPECTOR CHECKLIST ── */
+  .checklist-wrap { max-width: 560px; margin: 0 auto; padding: 20px 16px 60px; }
+  .inspector-greeting {
+    background: var(--gw-green); color: white; border-radius: var(--radius);
+    padding: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 14px;
+  }
+  .inspector-avatar {
+    width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700;
+    color: white; flex-shrink: 0;
+  }
+  .inspector-greeting h2 { font-size: 18px; font-weight: 700; margin-bottom: 2px; }
+  .inspector-greeting p { font-size: 13px; color: rgba(255,255,255,0.8); }
+
+  .progress-summary {
+    background: white; border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 18px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px;
+  }
+  .progress-ring-wrap { flex-shrink: 0; }
+  .progress-ring { transform: rotate(-90deg); }
+  .progress-ring-bg { fill: none; stroke: #e8e8e8; stroke-width: 6; }
+  .progress-ring-fill { fill: none; stroke: var(--gw-green); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease; }
+  .progress-pct { font-size: 16px; font-weight: 700; color: var(--gw-green); }
+  .progress-text h3 { font-size: 15px; font-weight: 700; color: var(--gw-blue); }
+  .progress-text p { font-size: 13px; color: var(--gw-gray-light); }
+
+  .stage-item {
+    background: white; border-radius: var(--radius); box-shadow: var(--shadow);
+    margin-bottom: 12px; overflow: hidden; border: 2px solid transparent; transition: all 0.2s;
+  }
+  .stage-item.completed { border-color: var(--gw-green); }
+  .stage-item.current { border-color: var(--gw-gold); }
+
+  .stage-row {
+    display: flex; align-items: center; gap: 14px; padding: 16px 18px; cursor: pointer;
+  }
+  .stage-check {
+    width: 36px; height: 36px; border-radius: 50%; border: 2.5px solid #ddd;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-size: 16px; transition: all 0.3s; background: white;
+  }
+  .stage-item.completed .stage-check { background: var(--gw-green); border-color: var(--gw-green); color: white; }
+  .stage-item.current .stage-check { border-color: var(--gw-gold); }
+  .stage-num-label { font-size: 11px; font-weight: 700; color: var(--gw-gray-light); }
+  .stage-title-main { font-size: 15px; font-weight: 700; color: var(--gw-blue); }
+  .stage-item.completed .stage-title-main { color: var(--gw-green-dark); }
+  .stage-status-badge {
+    margin-left: auto; font-size: 11px; font-weight: 700; padding: 4px 10px;
+    border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+  }
+  .badge-done { background: var(--gw-green-light); color: var(--gw-green-dark); }
+  .badge-next { background: var(--gw-gold-light); color: #7a5c00; }
+  .badge-locked { background: #f0f0f0; color: #aaa; }
+  .badge-date { background: var(--gw-blue-light); color: var(--gw-blue); }
+
+  .stage-detail {
+    display: none; border-top: 1px solid #f0f0f0; padding: 16px 18px 18px 68px; animation: fadeIn 0.2s ease;
+  }
+  .stage-detail.open { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+  .confirm-btn {
+    display: block; width: 100%; padding: 14px; margin-top: 14px;
+    background: var(--gw-green); color: white; border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s; font-family: inherit;
+  }
+  .confirm-btn:hover { background: var(--gw-green-dark); }
+  .confirm-btn.gold { background: var(--gw-gold); }
+  .confirm-btn.gold:hover { background: #a8852f; }
+  .undo-btn {
+    display: block; width: 100%; padding: 10px; margin-top: 8px;
+    background: none; border: 1.5px solid #ddd; border-radius: 8px; color: var(--gw-gray-light);
+    font-size: 13px; cursor: pointer; font-family: inherit; transition: all 0.2s;
+  }
+  .undo-btn:hover { border-color: var(--gw-red); color: var(--gw-red); }
+
+  .note { background: var(--gw-gold-light); border-left: 3px solid var(--gw-gold); border-radius: 0 6px 6px 0; padding: 10px 14px; font-size: 12px; color: #5a4010; margin: 10px 0; }
+  .note.info { background: var(--gw-blue-light); border-color: var(--gw-blue); color: #0d2f5a; }
+
+  .completed-stamp {
+    text-align: center; padding: 12px; color: var(--gw-green);
+    font-size: 13px; font-weight: 600;
+  }
+
+  .all-done-banner {
+    background: var(--gw-green); color: white; border-radius: var(--radius);
+    padding: 28px 24px; text-align: center; margin-top: 20px; display: none;
+  }
+  .all-done-banner.show { display: block; }
+  .all-done-banner h2 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+  .all-done-banner p { font-size: 14px; color: rgba(255,255,255,0.85); }
+
+  /* ── ADMIN VIEW ── */
+  .admin-wrap { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+  .admin-password-screen { max-width: 400px; margin: 60px auto; padding: 0 20px; }
+  .admin-password-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px 28px; text-align: center; }
+  .admin-password-card h2 { font-size: 20px; font-weight: 700; color: var(--gw-blue); margin-bottom: 6px; }
+  .admin-password-card p { font-size: 13px; color: var(--gw-gray-light); margin-bottom: 20px; }
+
+  .admin-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .stat-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 16px; text-align: center; }
+  .stat-num { font-size: 28px; font-weight: 700; color: var(--gw-green); }
+  .stat-label { font-size: 12px; color: var(--gw-gray-light); margin-top: 2px; }
+
+  .admin-table-wrap { background: white; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; }
+  .admin-table-header { background: var(--gw-blue); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+  .admin-table-header h3 { font-size: 15px; font-weight: 700; }
+  .admin-filter { padding: 8px 12px; border: none; border-radius: 6px; font-size: 13px; background: rgba(255,255,255,0.15); color: white; font-family: inherit; cursor: pointer; }
+  .admin-filter option { color: #333; background: white; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #f5f5f5; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700; color: var(--gw-gray-light); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #eee; }
+  td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+
+  .stage-pip {
+    display: inline-block; width: 22px; height: 22px; border-radius: 50%;
+    font-size: 10px; font-weight: 700; line-height: 22px; text-align: center;
+    margin-right: 3px;
+  }
+  .pip-done { background: var(--gw-green); color: white; }
+  .pip-pending { background: #eee; color: #aaa; }
+  .pip-current { background: var(--gw-gold); color: white; }
+
+  .inspector-name-cell { font-weight: 600; color: var(--gw-blue); }
+  .market-tag { font-size: 11px; color: var(--gw-gray-light); }
+
+  .pct-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .pct-bar { flex: 1; height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .pct-bar-fill { height: 100%; background: var(--gw-green); border-radius: 3px; transition: width 0.4s; }
+  .pct-label { font-size: 12px; font-weight: 600; color: var(--gw-green); min-width: 32px; text-align: right; }
+
+  .action-btn { padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; font-family: inherit; }
+  .action-send { background: var(--gw-blue-light); color: var(--gw-blue); }
+  .action-send:hover { background: var(--gw-blue); color: white; }
+  .action-clear { background: var(--gw-red-light); color: var(--gw-red); }
+  .action-clear:hover { background: var(--gw-red); color: white; }
+
+  .empty-state { text-align: center; padding: 40px 20px; color: var(--gw-gray-light); font-size: 14px; }
+
+  .reminder-panel { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 20px; }
+  .reminder-panel h3 { font-size: 15px; font-weight: 700; color: var(--gw-blue); margin-bottom: 14px; }
+  .reminder-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+  .reminder-row:last-child { border: none; }
+  .reminder-name { flex: 1; font-weight: 600; }
+  .reminder-stage { color: var(--gw-gray-light); flex: 1; }
+  .reminder-days { font-size: 12px; color: var(--gw-red); font-weight: 600; }
+
+  .admin-toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .search-box { flex: 1; min-width: 160px; padding: 9px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; font-family: inherit; }
+  .search-box:focus { border-color: var(--gw-green); }
+  .export-btn { padding: 9px 18px; background: var(--gw-gold); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .export-btn:hover { background: #a8852f; }
+
+  .back-link { display: inline-block; font-size: 13px; color: var(--gw-gray-light); cursor: pointer; margin-bottom: 16px; }
+  .back-link:hover { color: var(--gw-gray); }
+
+  @media (max-width: 600px) {
+    .admin-stats { grid-template-columns: repeat(2, 1fr); }
+    table { font-size: 12px; }
+    td, th { padding: 8px 10px; }
+    .stage-pip { display: none; }
+  }
+
+
+/* Guide styles merged in */
+.note-box { background: var(--gw-gold-light); border-left: 3px solid var(--gw-gold); border-radius: 0 8px 8px 0; padding: 12px 16px; font-size: 13px; color: #5a4010; margin: 12px 0; }
+.note-box.info { background: var(--gw-blue-light); border-left-color: var(--gw-blue); color: #0d2f5a; }
+.note-box.success { background: var(--gw-green-light); border-left-color: var(--gw-green); color: #1a4a25; }
+.kb-link { display: inline-flex; align-items: center; gap: 6px; background: var(--gw-blue); color: white; text-decoration: none; font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 6px; margin-top: 8px; transition: background 0.2s; }
+.kb-link:hover { background: var(--gw-green); }
+.badge-urgent { background: #fdecea; color: #b71c1c; }
+.badge-gold { background: var(--gw-gold-light); color: #7a5c00; }
+.bor-finder { background: white; border-radius: 10px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); border: 2px solid var(--gw-green); overflow: hidden; margin: 16px 0; }
+.bor-finder-header { background: var(--gw-green); padding: 16px 20px; color: white; }
+.bor-finder-header h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.bor-finder-header p { font-size: 13px; color: rgba(255,255,255,0.85); }
+.bor-finder-body { padding: 20px; }
+.search-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.search-input { flex: 1; min-width: 180px; padding: 10px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; color: var(--gw-gray); outline: none; transition: border-color 0.2s; }
+.search-input:focus { border-color: var(--gw-green); }
+.search-btn { padding: 10px 20px; background: var(--gw-green); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.search-btn:hover { background: var(--gw-green-dark); }
+.market-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.market-pill { padding: 6px 14px; border-radius: 20px; background: #f0f0f0; color: #555; font-size: 13px; cursor: pointer; border: 1.5px solid transparent; transition: all 0.15s; }
+.market-pill:hover { border-color: var(--gw-green); color: var(--gw-green); }
+.market-pill.selected { background: var(--gw-green); color: white; border-color: var(--gw-green); }
+.bor-result { display: none; background: var(--gw-green-light); border: 1px solid #b8d9c0; border-radius: 8px; padding: 18px; animation: fadeIn 0.2s ease; }
+.bor-result.show { display: block; }
+.bor-result-name { font-size: 16px; font-weight: 700; color: var(--gw-green-dark); margin-bottom: 12px; }
+.bor-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.bor-detail-label { color: var(--gw-gray-light); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.bor-detail-value { color: #222; font-weight: 500; font-size: 13px; }
+.bor-detail-value a { color: var(--gw-blue); text-decoration: none; }
+.bor-steps-title { font-size: 13px; font-weight: 700; color: var(--gw-green-dark); margin: 14px 0 8px; border-top: 1px solid #c0d9c8; padding-top: 12px; }
+.bor-steps { list-style: none; }
+.bor-steps li { font-size: 13px; color: #333; padding: 6px 0 6px 20px; display: block; position: relative; line-height: 1.5; border-bottom: 1px solid #f0f0f0; }
+.bor-steps li:last-child { border-bottom: none; }
+.bor-steps li::before { content: "→"; color: var(--gw-green); font-weight: 700; position: absolute; left: 0; top: 6px; }
+.bor-no-result { display: none; text-align: center; padding: 20px; color: var(--gw-gray-light); font-size: 14px; }
+.bor-no-result.show { display: block; }
+.completed-stamp { text-align: center; padding: 12px; color: var(--gw-green); font-size: 13px; font-weight: 600; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── STAGE CARDS RESTORED ── */
+.stage-item {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  margin-bottom: 14px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+}
+.stage-item:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
+.stage-item.completed { border-color: var(--gw-green); }
+.stage-item.current { border-color: var(--gw-gold); }
+
+.stage-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  cursor: pointer;
+  user-select: none;
+}
+.stage-num {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--gw-green);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.stage-item.completed .stage-num { background: var(--gw-green); }
+.stage-item.current .stage-num { background: var(--gw-gold); }
+
+.stage-title-block { flex: 1; min-width: 0; }
+.stage-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gw-blue);
+  margin-bottom: 2px;
+}
+.stage-item.completed .stage-title { color: var(--gw-green-dark); }
+.stage-sub {
+  font-size: 13px;
+  color: var(--gw-gray-light);
+}
+
+.stage-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.badge-done { background: var(--gw-green-light); color: var(--gw-green-dark); }
+.badge-next { background: var(--gw-gold-light); color: #7a5c00; }
+.badge-locked { background: #f0f0f0; color: #aaa; }
+.badge-urgent { background: #fdecea; color: #b71c1c; font-weight: 700; }
+.badge-gold { background: var(--gw-gold-light); color: #7a5c00; }
+
+.stage-chevron {
+  font-size: 18px;
+  color: var(--gw-gray-light);
+  transition: transform 0.25s;
+  flex-shrink: 0;
+}
+.stage-chevron.open { transform: rotate(180deg); }
+
+.stage-body {
+  display: none;
+  border-top: 1px solid #f0f0f0;
+  padding: 18px 20px 20px 20px;
+  animation: fadeIn 0.2s ease;
+}
+.stage-body.open { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+.step-list { list-style: none; margin-bottom: 14px; }
+.step-list li {
+  display: block;
+  padding: 8px 0 8px 22px;
+  border-bottom: 1px solid #f5f5f5;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+  position: relative;
+}
+.step-list li:last-child { border-bottom: none; }
+.step-list li::before {
+  content: "→";
+  color: var(--gw-green);
+  font-weight: 700;
+  position: absolute;
+  left: 0;
+  top: 8px;
+}
+
+.note-box {
+  background: var(--gw-gold-light);
+  border-left: 3px solid var(--gw-gold);
+  border-radius: 0 8px 8px 0;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #5a4010;
+  margin: 12px 0;
+  line-height: 1.5;
+}
+.note-box.info { background: var(--gw-blue-light); border-left-color: var(--gw-blue); color: #0d2f5a; }
+.note-box.success { background: var(--gw-green-light); border-left-color: var(--gw-green); color: #1a4a25; }
+
+.kb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--gw-blue);
+  color: white;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 18px;
+  border-radius: 6px;
+  margin-top: 10px;
+  transition: background 0.2s;
+}
+.kb-link:hover { background: var(--gw-green); }
+
+.confirm-btn {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  margin-top: 16px;
+  background: var(--gw-green);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: inherit;
+  letter-spacing: 0.3px;
+}
+.confirm-btn:hover { background: var(--gw-green-dark); }
+.confirm-btn.gold { background: var(--gw-gold); }
+.confirm-btn.gold:hover { background: #a8852f; }
+
+.undo-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  background: none;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  color: var(--gw-gray-light);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.undo-btn:hover { border-color: var(--gw-red); color: var(--gw-red); }
+
+.completed-stamp {
+  text-align: center;
+  padding: 12px;
+  color: var(--gw-green);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── FOOTER FIX ── */
+.footer {
+  text-align: center !important;
+  padding: 24px;
+  font-size: 12px;
+  color: var(--gw-gray-light);
+  border-top: 1px solid #e0e0e0;
+  margin-top: 40px;
+  width: 100%;
+  display: block;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">GreenWorks Inspections &amp; Engineering</div>
+  <h1 id="headerTitle">Inspector Property Access Onboarding</h1>
+  <p id="headerSub">Required: complete these 6 stages before your first inspection</p>
+</div>
+
+<!-- BOR Finder Template (hidden, cloned into Stage 4) -->
+<template id="borFinderTemplate">
+  <div class="bor-finder" style="margin-top:16px">
+    <div class="bor-finder-header">
+      <h3>🔍 Don't have a BOR account? Find where your membership awaits.</h3>
+      <p>Type your county or select your market below — we'll show you your association, contact details, and exactly how to apply.</p>
+    </div>
+    <div class="bor-finder-body">
+      <div class="market-pills">
+        <div class="market-pill" onclick="selectMarket('dallas')">Dallas (MetroTex)</div>
+        <div class="market-pill" onclick="selectMarket('arlington')">Arlington</div>
+        <div class="market-pill" onclick="selectMarket('fortworth')">Fort Worth</div>
+        <div class="market-pill" onclick="selectMarket('plano')">Plano / Collin Co.</div>
+        <div class="market-pill" onclick="selectMarket('denton')">Denton</div>
+        <div class="market-pill" onclick="selectMarket('weatherford')">Weatherford</div>
+        <div class="market-pill" onclick="selectMarket('austin')">Austin</div>
+        <div class="market-pill" onclick="selectMarket('houston')">Houston (HAR)</div>
+        <div class="market-pill" onclick="selectMarket('sanantonio')">San Antonio</div>
+        <div class="market-pill" onclick="selectMarket('corpuschristi')">Corpus Christi</div>
+        <div class="market-pill" onclick="selectMarket('killeen')">Killeen</div>
+        <div class="market-pill" onclick="selectMarket('temple')">Temple</div>
+      </div>
+      <div class="search-row">
+        <input class="search-input" id="borSearch" type="text" placeholder="Or type your county (e.g. Harris, Travis, Tarrant...)">
+        <button class="search-btn" onclick="searchBOR()">Find my BOR</button>
+      </div>
+      <div class="bor-result" id="borResult">
+        <div class="bor-result-name" id="borName"></div>
+        <div class="bor-detail-grid" id="borDetails"></div>
+        <div class="bor-steps-title">Membership steps</div>
+        <ul class="bor-steps" id="borSteps"></ul>
+        <div id="borSupra"></div>
+      </div>
+      <div class="bor-no-result" id="borNoResult">No match found. Contact Ops before proceeding.</div>
+    </div>
+  </div>
+</template>
+
+<!-- ══ LANDING ══ -->
+<div class="view active" id="viewLanding">
+  <div class="landing">
+    <div style="text-align:center;padding:24px 0 16px;font-size:14px;color:var(--gw-gray-light)">Who are you?</div>
+    <div class="role-card" onclick="showView('viewInspectorName')">
+      <div class="role-icon">🔑</div>
+      <h2>I'm an Inspector</h2>
+      <p>Track your property access setup stages and access step-by-step guidance for each one</p>
+    </div>
+    <div class="role-card" onclick="showAdminLogin()">
+      <div class="role-icon">📊</div>
+      <h2>I'm Ops / Admin</h2>
+      <p>View all inspector property access progress, send reminders, export status</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ INSPECTOR NAME ══ -->
+<div class="view" id="viewInspectorName">
+  <div class="name-entry">
+    <span class="back-link" onclick="showView('viewLanding')">← Back</span>
+    <div class="name-card">
+      <h2>Let's get your property access set up</h2>
+      <p>This process is separate from your BambooHR onboarding. Complete all 6 stages to unlock property access for inspections.</p>
+      <div class="field-group">
+        <label>Your full name</label>
+        <input type="text" id="inspectorNameInput" placeholder="e.g. John Smith" autocomplete="name" oninput="checkReturningInspector()">
+      </div>
+      <div id="returningBanner" style="display:none;background:var(--gw-green-light);border:1.5px solid var(--gw-green);border-radius:8px;padding:14px 16px;margin-bottom:4px;">
+        <div style="font-size:14px;font-weight:700;color:var(--gw-green-dark);margin-bottom:4px;">👋 Welcome back, <span id="returningName"></span>!</div>
+        <div style="font-size:13px;color:#333;margin-bottom:10px;">We found your checklist — pick up right where you left off.</div>
+        <button class="btn-primary" style="margin-top:0;padding:10px;" onclick="loadReturningInspector()">→ Jump back in</button>
+      </div>
+      <div id="newInspectorFields">
+      </div>
+      <div class="field-group">
+        <label>Your primary market</label>
+        <select id="marketSelect">
+          <option value="">— Select your market —</option>
+          <option>Dallas</option>
+          <option>Austin</option>
+          <option>San Antonio</option>
+          <option>Houston</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Hire date</label>
+        <input type="date" id="hireDateInput">
+      </div>
+      </div>
+      <button class="btn-primary" id="newInspectorSubmit" onclick="loadInspector()">Open my checklist →</button>
+      <button class="btn-secondary" onclick="showView('viewLanding')">Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ INSPECTOR CHECKLIST (single page — checklist + guide merged) ══ -->
+<div class="view" id="viewChecklist">
+  <div class="checklist-wrap">
+    <div class="inspector-greeting">
+      <div class="inspector-avatar" id="avatarInitials">JD</div>
+      <div>
+        <h2 id="greetingName">Hey!</h2>
+        <p id="greetingMarket"></p>
+      </div>
+    </div>
+    <div class="progress-summary">
+      <div class="progress-ring-wrap">
+        <svg width="64" height="64" class="progress-ring">
+          <circle class="progress-ring-bg" cx="32" cy="32" r="26"/>
+          <circle class="progress-ring-fill" id="progressRingFill" cx="32" cy="32" r="26" stroke-dasharray="163.4" stroke-dashoffset="163.4"/>
+        </svg>
+      </div>
+      <div class="progress-text">
+        <h3 id="progressLabel">0 of 6 stages complete</h3>
+        <p id="progressSub">Start with Stage 1</p>
+      </div>
+    </div>
+    <div id="stageList"></div>
+    <div class="all-done-banner" id="allDoneBanner">
+      <h2>🎉 You're fully set up!</h2>
+      <p>All 6 stages complete. You now have full property access through GreenWorks. Welcome to the team.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN LOGIN ══ -->
+<div class="view" id="viewAdminLogin">
+  <div class="admin-password-screen">
+    <span class="back-link" onclick="showView('viewLanding')">← Back</span>
+    <div class="admin-password-card">
+      <div style="font-size:36px;margin-bottom:12px">🔒</div>
+      <h2>Ops Dashboard</h2>
+      <p>Enter the admin password to view all inspector progress.</p>
+      <div class="field-group" style="margin-top:16px">
+        <input type="password" id="adminPassInput" placeholder="Password" style="text-align:center;letter-spacing:4px" onkeydown="if(event.key==='Enter')checkAdminPass()">
+      </div>
+      <button class="btn-primary" onclick="checkAdminPass()">Enter Dashboard</button>
+      <div id="passError" style="color:var(--gw-red);font-size:13px;margin-top:10px;display:none">Incorrect password. Try again.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN DASHBOARD ══ -->
+<div class="view" id="viewAdmin">
+  <div class="admin-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <span class="back-link" onclick="showView('viewLanding')">← Back to home</span>
+      <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+    <div class="admin-stats" id="adminStats"></div>
+    <div class="reminder-panel" id="reminderPanel" style="display:none">
+      <h3>⚠️ Inspectors needing a nudge</h3>
+      <div id="reminderList"></div>
+    </div>
+    <div class="admin-table-wrap">
+      <div class="admin-table-header">
+        <h3>All Inspectors</h3>
+        <select class="admin-filter" id="stageFilter" onchange="renderAdminTable()">
+          <option value="all">All stages</option>
+          <option value="0">Not started</option>
+          <option value="1">Stage 1 done</option>
+          <option value="2">Stage 2 done</option>
+          <option value="3">Stage 3 done</option>
+          <option value="4">Stage 4 done</option>
+          <option value="5">Stage 5 done</option>
+          <option value="6">All complete</option>
+        </select>
+      </div>
+      <div class="admin-toolbar">
+        <input class="search-box" type="text" placeholder="Search by name or market..." id="adminSearch" oninput="renderAdminTable()">
+      </div>
+      <div id="adminTableBody"></div>
+    </div>
+  </div>
+</div>
+
+<div id="additionalNotes" style="max-width:560px;margin:0 auto;padding:0 16px 20px;display:none;">
+
+  <!-- Congratulations Card -->
+  <div class="stage-item current" style="border-color:var(--gw-gold);margin-bottom:14px;">
+    <div class="stage-header" onclick="toggleExtraSection('contactSection')">
+      <div class="stage-num" style="background:var(--gw-gold);"><svg width="18" height="18" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg></div>
+      <div class="stage-title-block">
+        <div class="stage-title" style="color:var(--gw-green-dark);">Congratulations — you're approved for property access!</div>
+        <div class="stage-sub">Here are some need-to-know details for the field</div>
+      </div>
+      <div class="stage-chevron" id="chevContact">▾</div>
+    </div>
+    <div class="stage-body" id="contactSection">
+
+      <!-- Who to Contact -->
+      <p style="font-size:13px;color:#444;margin-bottom:14px;">Once you are active in the field, your MLS is almost always your fastest and most direct resource for access-related issues. <a href="https://greenworks.tawk.help/article/inspectorae-teams-communication-task-responsibilities" target="_blank" style="color:var(--gw-blue);font-weight:600;">📋 GreenWorks Teams Communication Guide</a></p>
+
+      <p style="font-size:13px;font-weight:700;color:var(--gw-blue);margin:12px 0 6px;">General Access Issues</p>
+      <ul class="step-list"><li>Contact your MLS directly — they can provide access without needing to route through the RSC team as a middleman</li>
+        <li>RSC handles your initial access setup, but once you are on-site your MLS is the <em>fastest point of contact</em>. If you run into issues, do not go silent — drop a message in your AE channel so the RSC team stays in the loop</li>
+      </ul>
+
+      <p style="font-size:13px;font-weight:700;color:var(--gw-blue);margin:12px 0 6px;">CBS Code Needed On-Site</p>
+      <ul class="step-list">
+        <li>Call your MLS and provide the serial number on the lockbox</li>
+        <li>They can generate a CBS code on the spot — this is often faster than contacting the listing agent directly</li>
+      </ul>
+
+      <p style="font-size:13px;font-weight:700;color:var(--gw-blue);margin:12px 0 6px;">RSC Team</p>
+      <ul class="step-list">
+        <li>RSC is responsible for handling your initial property access request before you arrive on site</li>
+        <li>If you have an issue before arriving, start with RSC — if you are already on-site, go directly to your MLS</li>
+      </ul>
+
+      <div style="background:#f9f3e6;border-left:3px solid #c6a047;border-radius:0 8px 8px 0;padding:12px 16px;font-size:13px;color:#5a4010;font-style:italic;margin:14px 0;">
+        Bottom line: your MLS is your best resource in the field. Save your local MLS member services number in your phone so you can reach them quickly when it matters.
+      </div>
+
+      <!-- Offboarding nested dropdown -->
+      <div style="border:1.5px solid #e0e0e0;border-radius:8px;overflow:hidden;margin-top:16px;">
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;" onclick="toggleExtraSection('offboardSection')">
+          <div style="font-size:14px;font-weight:700;color:var(--gw-gray);flex:1;">If the day ever comes... 😉 Offboarding</div>
+          <div class="stage-chevron" id="chevOffboard">▾</div>
+        </div>
+        <div class="stage-body" id="offboardSection" style="padding:14px 16px;">
+          <p style="font-size:13px;color:#444;margin-bottom:12px;">Just so you know for when the time comes — no pressure!</p>
+          <ul class="step-list">
+            <li>You will be required to remove the GreenWorks DBA from your TREC account — this cannot be completed by GreenWorks on your behalf</li>
+            <li>Ops will handle removal from NACHI and all associated platform access</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <strong>GreenWorks Inspections &amp; Engineering</strong> · Internal — Property Access Setup · June 2026<br>
+  Questions? Drop them in your AE channel.
+</div>
+
+<script>
+// ══ ADMIN PASSWORD ══
+const ADMIN_PASSWORD = 'GWops2026';
+
+// ══ STORAGE ══
+function storageKey(name) { return 'gw_onboarding_' + name.toLowerCase().replace(/\s+/g, '_'); }
+function saveInspector(inspector) {
+  try { localStorage.setItem(storageKey(inspector.name), JSON.stringify(inspector)); } catch(e) {}
+  let index = getAllInspectors();
+  const existing = index.findIndex(i => i.name === inspector.name);
+  if (existing >= 0) index[existing] = inspector; else index.push(inspector);
+  try { localStorage.setItem('gw_inspector_index', JSON.stringify(index)); } catch(e) {}
+}
+function getAllInspectors() {
+  try { return JSON.parse(localStorage.getItem('gw_inspector_index') || '[]'); } catch(e) { return []; }
+}
+function loadInspectorData(name) {
+  try { return JSON.parse(localStorage.getItem(storageKey(name))); } catch(e) { return null; }
+}
+
+// ══ NAVIGATION ══
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  const titles = {
+    viewLanding: ['Inspector Property Access Onboarding', 'Required: complete these 6 stages before your first inspection'],
+    viewInspectorName: ['Inspector Property Access Onboarding', 'Property access setup — get started'],
+    viewChecklist: ['My Property Access Setup', ''],
+    viewAdminLogin: ['Ops Dashboard', ''],
+    viewAdmin: ['Ops Dashboard', 'All inspector progress'],
+  };
+  const t = titles[id] || ['GreenWorks',''];
+  document.getElementById('headerTitle').textContent = t[0];
+  document.getElementById('headerSub').textContent = t[1];
+  const notesEl = document.getElementById('additionalNotes');
+  if (notesEl) notesEl.style.display = id === 'viewChecklist' ? 'block' : 'none';
+}
+
+function showAdminLogin() {
+  document.getElementById('adminPassInput').value = '';
+  document.getElementById('passError').style.display = 'none';
+  showView('viewAdminLogin');
+}
+
+function checkAdminPass() {
+  if (document.getElementById('adminPassInput').value === ADMIN_PASSWORD) {
+    renderAdminDashboard();
+    showView('viewAdmin');
+  } else {
+    document.getElementById('passError').style.display = 'block';
+  }
+}
+
+// ══ INSPECTOR LOAD ══
+let currentInspector = null;
+
+function checkReturningInspector() {
+  const name = document.getElementById('inspectorNameInput').value.trim();
+  const returning = document.getElementById('returningBanner');
+  const newFields = document.getElementById('newInspectorFields');
+  const submitBtn = document.getElementById('newInspectorSubmit');
+
+  if (name.length < 2) {
+    returning.style.display = 'none';
+    if (newFields) newFields.style.display = 'block';
+    if (submitBtn) submitBtn.style.display = 'block';
+    return;
+  }
+
+  const existing = loadInspectorData(name);
+  if (existing) {
+    document.getElementById('returningName').textContent = name.split(' ')[0];
+    returning.style.display = 'block';
+    if (newFields) newFields.style.display = 'none';
+    if (submitBtn) submitBtn.style.display = 'none';
+  } else {
+    returning.style.display = 'none';
+    if (newFields) newFields.style.display = 'block';
+    if (submitBtn) submitBtn.style.display = 'block';
+  }
+}
+
+function loadReturningInspector() {
+  const name = document.getElementById('inspectorNameInput').value.trim();
+  const existing = loadInspectorData(name);
+  if (existing) {
+    currentInspector = existing;
+    renderChecklist();
+    showView('viewChecklist');
+    document.getElementById('headerSub').textContent = currentInspector.market;
+  }
+}
+
+function loadInspector() {
+  const name = document.getElementById('inspectorNameInput').value.trim();
+  const market = document.getElementById('marketSelect').value;
+  const hireDate = document.getElementById('hireDateInput').value;
+  if (!name) { alert('Please enter your name.'); return; }
+  if (!market) { alert('Please select your market.'); return; }
+  let existing = loadInspectorData(name);
+  if (existing) {
+    currentInspector = existing;
+  } else {
+    currentInspector = { name, market, hireDate, stages: {}, timestamps: {} };
+    saveInspector(currentInspector);
+  }
+  renderChecklist();
+  showView('viewChecklist');
+  document.getElementById('headerSub').textContent = currentInspector.market;
+}
+
+// ══ BOR DATA ══
+const borData = {
+  dallas: {
+    name: "MetroTex Association of Realtors (DFW)",
+    phone: "214-637-6660",
+    email: "memberservices@dfwre.com",
+    website: "mymetrotex.com",
+    counties: ["Collin","Dallas","Denton","Ellis","Erath","Grayson","Hood","Hopkins","Hunt","Johnson","Kaufman","McLennan","Navarro","Parker","Rockwall","Somervell","Stephens","Tarrant","Van Zandt","Wise"],
+    markets: ["dallas","frisco","mckinney","garland","mesquite","irving","grand prairie","carrollton","richardson","allen","lewisville","flower mound","grapevine","southlake","keller","hurst","euless","bedford","coppell","addison","rowlett","rockwall","waxahachie","ennis","gainesville","sherman","denison","granbury","cleburne","burleson","mansfield","arlington","weatherford","mineral wells","stephenville","waco","hewitt","woodway","midlothian","red oak","duncanville","desoto","lancaster","cedar hill","glenn heights","wills point","forney","terrell","kaufman"],
+    steps: [
+      "Visit <a href=\'https://www.mymetrotex.com/welcome/#join\' target=\'_blank\'>mymetrotex.com</a> → click <strong>Join MetroTex</strong> → complete the <strong>Affiliate Application</strong>",
+      "Complete enrollment and <strong>pay dues</strong> — keep your receipt for reimbursement (Stage 6)",
+      "MetroTex will email your SUPRA access details after membership is confirmed",
+      "If no SUPRA email within 24 hours of confirmation, call member services at <strong>214-637-6660</strong>"
+    ],
+    kb: "https://greenworks.tawk.help/article/metrotex-board-of-realtor-association-membership",
+    supra: "MetroTex sends SUPRA access via email after membership is confirmed. If not received within 24 hours, call 214-637-6660."
+  },
+  arlington: {
+    name: "Arlington Board of Realtors",
+    phone: "817-701-2490",
+    email: "membership@arlingtonrealtor.com",
+    website: "arlingtonrealtor.com",
+    counties: ["Tarrant","Ellis","Hill"],
+    markets: ["arlington","mansfield","kennedale","pantego","midlothian","waxahachie","hillsboro","cleburne","burleson","crowley","grand prairie","hurst","euless","bedford","north richland hills","richland hills","white settlement","benbrook","everman","forest hill","rendon","venus","italy","ennis","waco"],
+    steps: [
+      "Visit <a href=\'https://\1\' target=\'_blank\'>\1</a> and complete the online membership application",
+      "Complete enrollment and <strong>pay dues</strong> — keep your receipt for reimbursement (Stage 6)",
+      "Request SUPRA eKEY access from the association upon membership confirmation",
+      "Download the SUPRA eKEY app and register with your MLS credentials"
+    ],
+    supra: "Contact Arlington BOR directly at 817-701-2490 to request SUPRA eKEY access after membership confirmation."
+  },
+  fortworth: {
+    name: "Greater Fort Worth Association of Realtors",
+    phone: "817-336-5165",
+    email: "membership@gfwar.org",
+    website: "gfwar.org",
+    counties: ["Tarrant","Johnson","Parker"],
+    markets: ["fort worth","benbrook","crowley","burleson","joshua","aledo","azle","saginaw","watauga","haltom city","north richland hills","richland hills","white settlement","weatherford","mineral wells","springtown","cleburne","keene","godley","grandview"],
+    steps: [
+      "Visit <a href=\'https://\1\' target=\'_blank\'>\1</a> and complete the online membership application",
+      "Complete enrollment and <strong>pay dues</strong> — keep your receipt for reimbursement (Stage 6)",
+      "Request SUPRA eKEY access upon membership confirmation",
+      "Download the SUPRA eKEY app and register with your MLS credentials"
+    ],
+    supra: "Contact Greater Fort Worth Association at 817-336-5165 to request SUPRA access after membership confirmation."
+  },
+  plano: {
+    name: "Collin County Association of Realtors (CCAR)",
+    phone: "972-618-3800",
+    email: "—",
+    website: "ccar.net",
+    counties: ["Collin"],
+    markets: ["plano","frisco","mckinney","allen","murphy","wylie","sachse","lucas","lavon","celina","prosper","anna","blue ridge","farmersville","melissa","princeton","new hope","nevada","josephine","weston","Westminster","van alstyne","gunter","sherman"],
+    steps: [
+      "Visit <a href=\'https://\1\' target=\'_blank\'>\1</a> and complete the online membership application",
+      "Complete enrollment and <strong>pay dues</strong> — keep your receipt for reimbursement (Stage 6)",
+      "Request SUPRA eKEY access upon membership confirmation",
+      "Download the SUPRA eKEY app and register with your MLS credentials"
+    ],
+    supra: "Contact CCAR at 972-618-3800 to request SUPRA access after membership confirmation."
+  },
+  denton: {
+    name: "Greater Denton/Wise County Association of Realtors",
+    phone: "940-387-8212",
+    email: "membership@gdwcar.com",
+    website: "gdwcar.com",
+    counties: ["Denton","Wise","Montague"],
+    markets: ["denton","decatur","bridgeport","gainesville","lake dallas","corinth","argyle","aubrey","crossroads","little elm","the colony","highland village","flower mound","lewisville","northlake","justin","rhome","newark","boyd","alvord","bowie","nocona"],
+    steps: [
+      "Visit <a href=\'https://\1\' target=\'_blank\'>\1</a> and complete the online membership application",
+      "Complete enrollment and <strong>pay dues</strong> — keep your receipt for reimbursement (Stage 6)",
+      "Request SUPRA eKEY access upon membership confirmation",
+      "Download the SUPRA eKEY app and register with your MLS credentials"
+    ],
+    supra: "Contact Greater Denton/Wise County Association at 940-387-8212 to request SUPRA access after confirmation."
+  },
+  weatherford: {
+    name: "Greater Metro West Association of Realtors",
+    phone: "817-596-5010",
+    email: "—",
+    website: "gmwar.org",
+    counties: ["Parker","Palo Pinto","Erath","Stephens","Eastland"],
+    markets: ["weatherford","mineral wells","granbury","stephenville","glen rose","strawn","palo pinto","breckenridge","cisco","eastland","gordon","millsap","aledo","willow park","annetta","hudson oaks"],
+    steps: [
+      "Visit <a href=\'https://\1\' target=\'_blank\'>\1</a> and complete the online membership application",
+      "Complete enrollment and <strong>pay dues</strong> — keep your receipt for reimbursement (Stage 6)",
+      "Request SUPRA eKEY access upon membership confirmation",
+      "Download the SUPRA eKEY app and register with your MLS credentials"
+    ],
+    supra: "Contact Greater Metro West Association at 817-596-5010 to request SUPRA access after confirmation."
+  },
+  austin: {
+    name: "Austin Board of Realtors (ABOR / UnlockMLS)",
+    phone: "512-454-7636",
+    email: "—",
+    website: "abor.com",
+    counties: ["Bastrop","Blanco","Burnet","Caldwell","Comal","Fayette","Gillespie","Gonzales","Guadalupe","Hays","Kerr","Lee","Llano","Milam","Travis","Washington","Williamson"],
+    markets: ["austin","round rock","cedar park","pflugerville","georgetown","manor","bastrop","buda","kyle","dripping springs","bee cave","lakeway","liberty hill","leander","taylor","san marcos","new braunfels","seguin","lockhart","luling","gonzales","fredericksburg","kerrville","marble falls","burnet","lampasas","cameron","rockdale","giddings","brenham","la grange","shiner","cuero","elgin","hutto","cedar creek","smithville","wimberley","bee cave","spicewood","sunrise beach","llano","mason"],
+    steps: [
+      "Visit <a href=\'https://www.abor.com\' target=\'_blank\'>abor.com</a> → click <strong>Join Us</strong> → under the UnlockMLS section, click <strong>Apply Now</strong>",
+      "Complete enrollment — pay both membership dues AND SUPRA dues at signup",
+      "Keep all receipts for reimbursement (Stage 6)",
+      "UnlockMLS access is granted through ABOR membership",
+      "SUPRA eKEY details will be sent to your email after enrollment — check within 24 hours"
+    ],
+    kb: "https://greenworks.tawk.help/article/austin-board-of-realtors-association-membership",
+    supra: "Pay SUPRA dues at the time of membership enrollment and ABOR will send your SUPRA eKEY access details via email. If not received within 24 hours, contact ABOR at 512-454-7636."
+  },
+  houston: {
+    name: "Houston Association of Realtors (HAR)",
+    phone: "713-629-1900",
+    email: "—",
+    website: "har.com",
+    counties: ["Harris","Fort Bend","Montgomery","Brazoria","Chambers","Galveston","Liberty","Waller"],
+    markets: ["houston","katy","sugar land","pearland","friendswood","league city","clear lake","the woodlands","spring","cypress","humble","kingwood","baytown","pasadena","galveston","conroe","magnolia","tomball","richmond","rosenberg","missouri city","stafford","la marque","texas city","dickinson","santa fe","alvin","angleton","lake jackson","clute","freeport","dayton","liberty","cleveland","waller","hempstead","brookshire","sealy","fulshear","cinco ranch","memorial","jersey village","hedwig village","hunters creek","bunker hill"],
+    steps: [
+      "Call 713-629-1900 and select option 4 for Member Services",
+      "Advise that you have completed your application and payment and are requesting SUPRA access",
+      "Submit a photo of your <strong>government-issued ID</strong> when asked",
+      "Complete the DocuSign sent to your email",
+      "Access is granted upon completion — approximately 10 minutes total",
+      "Download the SUPRA eKEY app and register with your HAR credentials"
+    ],
+    kb: "https://greenworks.tawk.help/article/houston-board-of-realtors-association-affiliate-membership",
+    supra: "HAR requires a phone call to activate SUPRA. Call 713-629-1900 option 4 — process takes about 10 minutes. Have your government-issued ID ready."
+  },
+  sanantonio: {
+    name: "San Antonio Board of Realtors (SABOR)",
+    phone: "210-593-1200",
+    email: "—",
+    website: "sabor.com",
+    counties: ["Atascosa","Bee","Bexar","Frio","Karnes","Kendall","La Salle","Maverick","McMullen","Medina","Uvalde","Val Verde","Wilson"],
+    markets: ["san antonio","new braunfels","seguin","schertz","converse","universal city","boerne","helotes","leon valley","alamo heights","kirby","live oak","selma","cibolo","garden ridge","del rio","crystal city","carrizo springs","cotulla","pearsall","pleasanton","jourdanton","beeville","floresville","hondo","castroville","uvalde","brackettville","eagle pass","laredo"],
+    steps: [
+      "Visit <a href=\'https://\1\' target=\'_blank\'>\1</a> and complete the online membership application",
+      "Complete enrollment and <strong>pay dues</strong> — keep your receipt for reimbursement (Stage 6)",
+      "Request SUPRA eKEY access upon membership confirmation",
+      "Download the SUPRA eKEY app and register with your MLS credentials"
+    ],
+    supra: "Contact SABOR at 210-593-1200 to request SUPRA eKEY access after membership confirmation."
+  },
+  corpuschristi: {
+    name: "Corpus Christi Association of Realtors (CCARMLS)",
+    phone: "361-991-8221",
+    email: "—",
+    website: "ccaronline.com",
+    counties: ["Nueces","San Patricio","Aransas","Kleberg","Jim Wells","Refugio","Bee","Brooks","Duval","Jim Hogg","Kennedy","Starr","Zapata"],
+    markets: ["corpus christi","portland","rockport","aransas pass","ingleside","gregory","calallen","flour bluff","robstown","kingsville","alice","falfurrias","beeville","george west","three rivers","laredo","rio grande city","zapata","hebbronville"],
+    steps: [
+      "Visit <a href=\'https://\1\' target=\'_blank\'>\1</a> and complete the online membership application",
+      "Complete enrollment and <strong>pay dues</strong> — keep your receipt for reimbursement (Stage 6)",
+      "Request SUPRA eKEY access upon membership confirmation",
+      "Download the SUPRA eKEY app and register with your MLS credentials"
+    ],
+    supra: "Contact CCAR at 361-991-8221 to request SUPRA eKEY access after membership confirmation."
+  },
+  killeen: {
+    name: "Fort Hood Area Association of Realtors (FHMLS)",
+    phone: "254-634-4412",
+    email: "—",
+    website: "fhaar.org",
+    counties: ["Bell","Coryell","Lampasas","Hamilton","Mills","San Saba"],
+    markets: ["killeen","fort hood","copperas cove","harker heights","nolanville","lampasas","belton","temple","waco","hewitt","woodway","robinson","china spring","lorena","gatesville","hamilton","goldthwaite","llano","san saba","brady","colorado city"],
+    steps: [
+      "Visit <a href=\'https://\1\' target=\'_blank\'>\1</a> and complete the online membership application",
+      "Complete enrollment and <strong>pay dues</strong> — keep your receipt for reimbursement (Stage 6)",
+      "Request SUPRA eKEY access upon membership confirmation",
+      "Download the SUPRA eKEY app and register with your MLS credentials"
+    ],
+    supra: "Contact Fort Hood Area Association at 254-634-4412 to request SUPRA access after membership confirmation."
+  },
+  temple: {
+    name: "Temple Belton Board of Realtors (TBBOR)",
+    phone: "254-773-0410",
+    email: "—",
+    website: "temple-beltonbor.com",
+    counties: ["Bell","Falls","McLennan","Milam","Robertson"],
+    markets: ["temple","belton","salado","cameron","taylor","rockdale","cameron","marlin","waco","hewitt","hillsboro","corsicana","mexia","cameron","hearne","bryan","college station"],
+    steps: [
+      "Visit temple-beltonbor.com or call 254-773-0410 to begin membership",
+      "Complete enrollment and <strong>pay dues</strong> — keep your receipt for reimbursement (Stage 6)",
+      "Request SUPRA eKEY access upon membership confirmation",
+      "Download the SUPRA eKEY app and register with your MLS credentials"
+    ],
+    supra: "Contact TBBOR at 254-773-0410 to request SUPRA eKEY access after membership confirmation."
+  }
+}
+
+
+// ══ BOR FUNCTIONS ══
+function selectMarket(key) {
+  document.querySelectorAll('.market-pill').forEach(p => p.classList.remove('selected'));
+  event.target.classList.add('selected');
+  showBOR(key);
+}
+
+function searchBOR() {
+  const query = document.getElementById('borSearch').value.trim().toLowerCase();
+  if (!query) return;
+  let found = null;
+  for (const [key, bor] of Object.entries(borData)) {
+    if (bor.counties && bor.counties.some(c => c.toLowerCase().includes(query) || query.includes(c.toLowerCase()))) { found = key; break; }
+    if (bor.markets && bor.markets.some(m => m.includes(query) || query.includes(m))) { found = key; break; }
+    if (bor.name.toLowerCase().includes(query)) { found = key; break; }
+  }
+  document.querySelectorAll('.market-pill').forEach(p => p.classList.remove('selected'));
+  if (found) {
+    showBOR(found);
+  } else {
+    document.getElementById('borResult').classList.remove('show');
+    document.getElementById('borNoResult').classList.add('show');
+  }
+}
+
+function showBOR(key) {
+  const bor = borData[key];
+  if (!bor) return;
+  document.getElementById('borNoResult').classList.remove('show');
+  document.getElementById('borName').textContent = bor.name;
+  document.getElementById('borDetails').innerHTML = `
+    <div class="bor-detail"><div class="bor-detail-label">Phone</div><div class="bor-detail-value">${bor.phone}</div></div>
+    <div class="bor-detail"><div class="bor-detail-label">Email</div><div class="bor-detail-value">${bor.email}</div></div>
+    <div class="bor-detail"><div class="bor-detail-label">Website</div><div class="bor-detail-value"><a href="https://${bor.website}" target="_blank">${bor.website}</a></div></div>
+    <div class="bor-detail" style="grid-column:1/-1"><div class="bor-detail-label">Counties served</div><div class="bor-detail-value">${bor.counties.join(', ')}</div></div>
+  `;
+  document.getElementById('borSteps').innerHTML = bor.steps.map(s => `<li>${s}</li>`).join('');
+  document.getElementById('borSupra').innerHTML = `<div class="note-box info" style="margin-top:12px"><strong>SUPRA note:</strong> ${bor.supra}</div>`;
+  document.getElementById('borResult').classList.add('show');
+}
+
+// ══ STAGE DETAIL BUILDER ══
+
+function noteBox(text, type) {
+  const cls = type === 'gold' ? 'background:#f9f3e6;border-left:3px solid #c6a047;color:#5a4010;' :
+              type === 'info' ? 'background:var(--gw-blue-light);border-left:3px solid var(--gw-blue);color:#0d2f5a;' :
+              type === 'success' ? 'background:var(--gw-green-light);border-left:3px solid var(--gw-green);color:#1a4a25;' :
+              'background:#f9f3e6;border-left:3px solid var(--gw-gold);color:#5a4010;';
+  return `<div style="border-radius:0 8px 8px 0;padding:12px 16px;font-size:13px;margin:12px 0;line-height:1.5;${cls}">${text}</div>`;
+}
+
+function stepList(steps) {
+  return '<ul class="step-list">' + steps.map(s => `<li>${s}</li>`).join('') + '</ul>';
+}
+
+function buildStageDetail(stage, done, isCurrent) {
+  let html = '';
+
+  // ── TWO-PART STAGE (Stage 2) ──────────────────────────────────────────────
+  if (stage.two_part) {
+    const doneA = currentInspector.stages[stage.id + '_a'];
+    const doneB = done;
+
+    // Part A
+    html += `<div style="border:1.5px solid ${doneA ? 'var(--gw-green)' : '#e0e0e0'};border-radius:8px;padding:16px;margin-bottom:14px;">`;
+    html += `<p style="font-weight:700;font-size:14px;color:${doneA ? 'var(--gw-green-dark)' : 'var(--gw-blue)'};margin-bottom:10px;">${doneA ? '✓ ' : ''}${stage.part_a.title}</p>`;
+    html += stepList(stage.part_a.steps);
+    if (stage.kb) html += `<a class="kb-link" href="${stage.kb.url}" target="_blank" style="margin-top:8px;">📋 ${stage.kb.label}</a>`;
+    if (doneA) {
+      html += `<div class="completed-stamp">✅ Submitted on ${formatDate(currentInspector.timestamps[stage.id + '_a'])}</div>`;
+    } else {
+      html += `<button class="confirm-btn" style="margin-top:12px;" onclick="completeSubStage(${stage.id},'a',event)">${stage.part_a.button}</button>`;
+    }
+    html += '</div>';
+
+    // Part B
+    html += `<div style="border:1.5px solid ${doneB ? 'var(--gw-green)' : doneA ? 'var(--gw-gold)' : '#e0e0e0'};border-radius:8px;padding:16px;${doneA ? '' : 'opacity:0.5;'}">`;
+    html += `<p style="font-weight:700;font-size:14px;color:${doneB ? 'var(--gw-green-dark)' : 'var(--gw-blue)'};margin-bottom:10px;">${doneB ? '✓ ' : ''}${stage.part_b.title}</p>`;
+    if (stage.part_b.note) html += noteBox(stage.part_b.note, stage.part_b.note_type);
+    html += stepList(stage.part_b.steps);
+    if (doneB) {
+      html += `<div class="completed-stamp">✅ Confirmed on ${formatDate(currentInspector.timestamps[stage.id])}</div>`;
+      html += `<button class="undo-btn" onclick="undoStage(${stage.id},event)">Undo — mark as incomplete</button>`;
+    } else if (doneA) {
+      html += `<button class="confirm-btn gold" style="margin-top:12px;" onclick="completeStage(${stage.id},event)">${stage.part_b.button}</button>`;
+    } else {
+      html += `<p style="font-size:12px;color:#aaa;text-align:center;margin-top:10px;">Complete Step 2a first to unlock this step</p>`;
+    }
+    html += '</div>';
+    return html;
+  }
+
+  // ── TOP NOTE ──────────────────────────────────────────────────────────────
+  if (stage.note) html += noteBox(stage.note, stage.note_type);
+
+  // ── SUB SECTIONS (Stage 5 style) ──────────────────────────────────────────
+  if (stage.sub_sections) {
+    stage.sub_sections.forEach(ss => {
+      html += `<p style="font-weight:700;font-size:14px;margin:14px 0 6px;color:var(--gw-blue)">${ss.title}</p>`;
+      html += stepList(ss.steps);
+    });
+  } else if (stage.steps && stage.steps.length) {
+    // Stage 4 — BOR finder after first step
+    if (stage.bor_finder) {
+      html += '<ul class="step-list"><li>' + stage.steps[0] + '</li></ul>';
+      const tmpl = document.getElementById('borFinderTemplate');
+      if (tmpl) {
+        html += tmpl.innerHTML;
+        setTimeout(() => {
+          const b = document.getElementById('borSearch');
+          if (b && !b._hasListener) {
+            b.addEventListener('keydown', e => { if (e.key === 'Enter') searchBOR(); });
+            b._hasListener = true;
+          }
+        }, 100);
+      }
+      html += '<ul class="step-list">' + stage.steps.slice(1).map(s => `<li>${s}</li>`).join('') + '</ul>';
+    } else {
+      html += stepList(stage.steps);
+    }
+  }
+
+  // ── SECOND NOTE ───────────────────────────────────────────────────────────
+  if (stage.note2) html += noteBox(stage.note2, stage.note2_type);
+
+  // ── KB LINK ───────────────────────────────────────────────────────────────
+  if (stage.kb) html += `<a class="kb-link" href="${stage.kb.url}" target="_blank">📋 ${stage.kb.label}</a>`;
+
+  // ── BUTTONS ───────────────────────────────────────────────────────────────
+  if (done) {
+    html += `<div class="completed-stamp">✅ Marked complete on ${formatDate(currentInspector.timestamps[stage.id])}</div>`;
+    html += `<button class="undo-btn" onclick="undoStage(${stage.id},event)">Undo — mark as incomplete</button>`;
+  } else if (isCurrent) {
+    const btnText = stage.id === 1 ? '🔑 Let\'s get you access!' : stage.id === 6 ? '✓ All receipts submitted — I\'m done!' : '✓ Mark Stage ' + stage.id + ' complete';
+    const btnClass = stage.id === 6 ? 'confirm-btn gold' : 'confirm-btn';
+    html += `<button class="${btnClass}" onclick="completeStage(${stage.id},event)">${btnText}</button>`;
+  }
+
+  return html;
+}
+
+
+// ══ STAGES + RENDER ══
+
+const STAGES = [{"id": 1, "title": "Hiring confirmation", "sub": "Onboarding checklist issued · deadlines set", "badge": "Day 1", "badge_class": "", "steps": ["Welcome to GreenWorks! These <strong>6 stages are required</strong> before you can access properties for inspections. This process is separate from your BambooHR onboarding — <strong>both must be completed</strong>.", "GreenWorks maintains a Knowledge Base with step-by-step articles supporting each stage. Bookmark it — you will reference it throughout this process and beyond. 📋 <a href='https://greenworks.tawk.help/category/field-inspector-procedures-training-resources/employee-essentials-and-resources/property-access' target='_blank' style='color:var(--gw-blue);font-weight:600;'>GreenWorks Knowledge Base — Property Access</a>", "Sign and return your <strong>offer letter and all onboarding documents</strong>", "Alex confirms your hire and tags Ops to kick off your access checklist", "Each step below has a <strong>deadline built in</strong> — these are expected to be met", "<strong>No property access is granted</strong> until all 6 stages are complete"], "note": "<strong>Start Stage 2 today.</strong> The TREC DBA update takes 2–3 weeks to process — every day you wait pushes back everything that follows.", "note_type": "success", "kb": null}, {"id": 2, "title": "TREC DBA update", "sub": "Submit today · return when TREC approves", "badge": "Day 1 → Week 2–3", "badge_class": "urgent", "steps": [], "note": "<strong>This is the most critical step.</strong> All remaining stages depend on GreenWorks being reflected on your TREC profile. Submit the same day you accept your offer.", "note_type": "", "note2": null, "note2_type": "info", "kb": {"label": "How to Update Your DBA via TREC — KB Article", "url": "https://greenworks.tawk.help/article/how-to-update-assumed-business-name-via-trec"}, "two_part": true, "part_a": {"title": "Step 2a — Submit today", "steps": ["Log into your TREC portal at <a href='https://license.texasrealestate.com' target='_blank' style='color:var(--gw-blue);font-weight:600;'>license.texasrealestate.com</a>, navigate to <strong>License Maintenance → Assumed Business Name</strong>, and enter <strong>GreenWorks Inspections &amp; Engineering</strong> as your DBA.", "The GreenWorks KB article linked below includes a <strong>pre-filled Assumed Business Name Certificate</strong> — download it and upload it to TREC before submitting. <strong>No additional paperwork needed.</strong>", "Submit your application — TREC will display a Record Issuance confirmation page with a <strong>Record Number (format: AMEND-XX-XXXXX)</strong>. <strong>Screenshot this page.</strong>", "Post the screenshot in your <strong>AE channel</strong> (AE - First Last - Market) and tag <strong>Operations</strong>. This confirms your submission and starts the 2–3 week wait."], "button": "✓ 2a — Application submitted & screenshot posted"}, "part_b": {"title": "Step 2b — Come back when approved (2–3 weeks)", "note": "TREC will process your application over the next <strong>2–3 weeks</strong>. Once approved, GreenWorks Inspections & Engineering will appear under the <strong>DBAs section</strong> on your TREC profile. Come back here to complete this step when that happens.", "note_type": "info", "steps": ["Log back into your TREC portal and navigate to your license profile", "Confirm GreenWorks Inspections & Engineering is listed under your <strong>DBAs</strong>", "<strong>Screenshot your profile</strong> showing GreenWorks listed under DBAs", "Post the screenshot in your <strong>AE channel</strong> (AE - First Last - Market) and tag <strong>Operations</strong> — this confirms full approval and unlocks Stage 3"], "button": "✓ GreenWorks is now reflected on my TREC profile"}}, {"id": 3, "title": "NACHI profile association", "sub": "Associate your NACHI account to GreenWorks", "badge": "Week 2–3", "badge_class": "", "steps": ["Log into your existing NACHI account at <a href='https://www.nachi.org/auth/login' target='_blank' style='color:var(--gw-blue);font-weight:600;'>nachi.org</a>", "Go to <strong>Account Settings → Company Association</strong>", "Search for <strong>GreenWorks Inspections & Engineering</strong> and submit the association request", "Take a screenshot confirming your submitted NACHI company affiliation request showing <strong>GreenWorks Inspections &amp; Engineering</strong>", "Post the screenshot in your <strong>AE channel</strong> (AE - First Last - Market) and tag <strong>Operations</strong> — do not move to Stage 4 until Ops confirms"], "note": "<strong>Do not begin this stage until Stage 2b is complete.</strong> NACHI cannot associate you with GreenWorks unless GreenWorks is already reflected and approved on your TREC profile.", "note_type": "", "note2": "<strong>Billing during account creation:</strong> When setting up your account you will be prompted to enter billing details. <strong>Stop at the billing page — do not enter payment info.</strong> Notify Ops and GreenWorks will process billing manually through the consolidated company account.", "note2_type": "info"}, {"id": 4, "title": "BOR membership & MLS access", "sub": "Join your market BOR to unlock MLS and SUPRA", "badge": "Week 2–3", "badge_class": "", "steps": ["Visit your <strong>BOR's website</strong> and complete the membership application online. All associations accept applications through their website — if you call member services first, they will direct you there anyway.", "Complete enrollment and <strong>pay dues</strong>", "Post your BOR enrollment receipt immediately in <strong>Inspector Payroll → General</strong>, tag <strong>Trina Harmeson and Operations</strong>, and use the description: <em>BOR Enrollment Receipt — [Your Name] — [Market]</em>", "Once membership is confirmed you will receive next steps via email or on-screen"], "note": "<strong>Already a BOR/MLS member?</strong> Skip this stage — continue paying dues as normal and submit for reimbursement in Stage 6.", "note_type": "gold", "kb": {"label": "How to Track Realtor Dues / SUPRA — KB Article", "url": "https://greenworks.tawk.help/article/how-to-track-and-pay-realtor-dues-supra"}, "bor_finder": true, "bor_finder_position": "after_first_step"}, {"id": 5, "title": "SUPRA & eKEY activation", "sub": "Activate your lockbox access for field inspections", "badge": "Week 3–4", "badge_class": "", "note": "BOR membership must be confirmed before starting this step.", "note_type": "gold", "sub_sections": [{"title": "MetroTex, ABOR, CCAR & associated DFW/Austin boards", "steps": ["Once your application is approved, SUPRA access details will be sent to your email automatically — no additional call needed", "If you do not receive your SUPRA email <strong>within 24 hours</strong> of membership confirmation, contact MetroTex member services at <strong>214-637-6660</strong>", "This applies to all boards operating under MetroTex MLS — including CCAR (Collin County) and ABOR (Austin/UnlockMLS)"]}, {"title": "HAR (Houston market)", "steps": ["After your application is submitted, call <strong>713-629-1900</strong> and select option 4 for Member Services", "Advise that you have completed your application and payment and are requesting SUPRA access", "Submit a photo of your <strong>government-issued ID</strong> when asked", "Complete the DocuSign sent to your email — total process is approximately 10 minutes"]}, {"title": "SUPRA eKEY setup — all markets", "steps": ["Download the <strong>SUPRA eKEY</strong> app on your mobile device", "Register with your BOR/MLS credentials and complete activation", "If the activation email does not arrive <strong>within 24 hours</strong>, contact your BOR directly", "Once your eKEY is active, post your SUPRA payment receipt in <strong>Inspector Payroll → General</strong>, tag <strong>Trina Harmeson and Operations</strong>, and use the description: <em>SUPRA Receipt — [Your Name] — [Market]</em>"]}]}, {"id": 6, "title": "Dues reimbursement", "sub": "Post receipts as you receive them — do not wait", "badge": "Get paid back", "badge_class": "gold", "steps": ["Post each receipt in <strong>Inspector Payroll → General</strong> as it comes in — do not wait until all stages are complete", "Tag <strong>Trina Harmeson and Operations</strong> and use the description: <em>Access Setup — [Your Name] — [Platform]</em>", "Ops will confirm receipt and process reimbursement on the standard payroll cycle"], "note": "All receipts go to Inspector Payroll → General. Post as they come in — one at a time is perfectly fine.", "note_type": "success", "note2": "⚠️ Do not send receipts via email or direct message — Inspector Payroll → General only.", "note2_type": "info"}];
+
+function renderChecklist() {
+  const i = currentInspector;
+  const initials = i.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('avatarInitials').textContent = initials;
+  document.getElementById('greetingName').textContent = 'Hey, ' + i.name.split(' ')[0] + '!';
+  document.getElementById('greetingMarket').innerHTML = i.market + (i.hireDate ? ' · Hired ' + formatDate(i.hireDate) : '');
+
+  const completed = Object.values(i.stages).filter(Boolean).length;
+  const pct = Math.round((completed / 6) * 100);
+  const circumference = 163.4;
+  const offset = circumference - (pct / 100) * circumference;
+  document.getElementById('progressRingFill').style.strokeDashoffset = offset;
+  document.getElementById('progressLabel').textContent = completed + ' of 6 stages complete';
+
+  const subs = [
+    'Start with Stage 1 — hiring confirmation',
+    'Great start — submit TREC DBA today',
+    'TREC submitted — begin NACHI next',
+    'NACHI done — join your BOR next',
+    'BOR joined — activate SUPRA next',
+    'Almost there — submit reimbursement',
+    '🎉 All done — full access granted!'
+  ];
+  document.getElementById('progressSub').textContent = subs[completed];
+
+  const list = document.getElementById('stageList');
+  list.innerHTML = '';
+
+  STAGES.forEach((stage, idx) => {
+    const done = i.stages[stage.id];
+    const prevDone = idx === 0 || i.stages[idx];
+    const isCurrent = !done && prevDone;
+    const isLocked = !done && !prevDone;
+
+    const item = document.createElement('div');
+    item.className = 'stage-item' + (done ? ' completed' : isCurrent ? ' current' : '');
+    item.id = 'stageItem' + stage.id;
+
+    const badgeClass = stage.badge_class === 'urgent' ? 'badge-urgent' :
+                       stage.badge_class === 'gold' ? 'badge-gold' :
+                       done ? 'badge-done' : isCurrent ? 'badge-next' : 'badge-locked';
+
+    const badgeText = done ? '✓ Done' : stage.badge;
+
+    item.innerHTML = `
+      <div class="stage-header" onclick="toggleStage(${stage.id})">
+        <div class="stage-num">${done ? '✓' : stage.id}</div>
+        <div class="stage-title-block">
+          <div class="stage-title">${stage.title}</div>
+          <div class="stage-sub">${stage.sub}</div>
+        </div>
+        <span class="stage-badge ${badgeClass}">${badgeText}</span>
+        <div class="stage-chevron" id="chev${stage.id}">▾</div>
+      </div>
+      <div class="stage-body" id="body${stage.id}">
+        ${buildStageDetail(stage, done, isCurrent)}
+      </div>`;
+
+    list.appendChild(item);
+  });
+
+  const allDone = completed === 6;
+  document.getElementById('allDoneBanner').classList.toggle('show', allDone);
+  const notesEl = document.getElementById('additionalNotes');
+  if (notesEl) notesEl.style.display = 'block';
+}
+
+function toggleStage(n) {
+  const body = document.getElementById('body' + n);
+  const chev = document.getElementById('chev' + n);
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  chev.classList.toggle('open', !isOpen);
+}
+
+function completeSubStage(stageId, part, e) {
+  e.stopPropagation();
+  currentInspector.stages[stageId + '_' + part] = true;
+  currentInspector.timestamps[stageId + '_' + part] = new Date().toISOString();
+  saveInspector(currentInspector);
+  renderChecklist();
+  // Keep stage 2 open so they can see part b
+  setTimeout(() => {
+    const body = document.getElementById('body' + stageId);
+    if (body) body.classList.add('open');
+  }, 100);
+}
+
+function completeStage(id, e) {
+  e.stopPropagation();
+  currentInspector.stages[id] = true;
+  currentInspector.timestamps[id] = new Date().toISOString();
+  saveInspector(currentInspector);
+  renderChecklist();
+  setTimeout(() => {
+    const next = document.getElementById('body' + (id + 1));
+    if (next) next.classList.add('open');
+  }, 300);
+}
+
+function undoStage(id, e) {
+  e.stopPropagation();
+  if (!confirm('Mark Stage ' + id + ' as incomplete?')) return;
+  for (let s = id; s <= 6; s++) {
+    delete currentInspector.stages[s];
+    delete currentInspector.timestamps[s];
+  }
+  saveInspector(currentInspector);
+  renderChecklist();
+}
+
+
+// ══ UTILS ══
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    const d = new Date(dateStr + (dateStr.length === 10 ? 'T12:00:00' : ''));
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch(e) { return dateStr; }
+}
+
+// ══ ADMIN ══
+function renderAdminDashboard() {
+  const all = getAllInspectors();
+  const total = all.length;
+  const complete = all.filter(i => Object.values(i.stages).filter(Boolean).length === 6).length;
+  const inProgress = all.filter(i => { const c = Object.values(i.stages).filter(Boolean).length; return c > 0 && c < 6; }).length;
+  const notStarted = all.filter(i => Object.values(i.stages).filter(Boolean).length === 0).length;
+  document.getElementById('adminStats').innerHTML = `
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total inspectors</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--gw-green)">${complete}</div><div class="stat-label">Fully complete</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--gw-gold)">${inProgress}</div><div class="stat-label">In progress</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--gw-gray-light)">${notStarted}</div><div class="stat-label">Not started</div></div>
+  `;
+  const stale = all.filter(i => {
+    const completed = Object.values(i.stages).filter(Boolean).length;
+    if (completed === 6) return false;
+    const ts = i.timestamps && i.timestamps[completed];
+    if (!ts && i.hireDate) return Math.floor((Date.now() - new Date(i.hireDate)) / 86400000) >= 3;
+    if (ts) return Math.floor((Date.now() - new Date(ts)) / 86400000) >= 5;
+    return false;
+  });
+  const reminderPanel = document.getElementById('reminderPanel');
+  if (stale.length > 0) {
+    reminderPanel.style.display = 'block';
+    document.getElementById('reminderList').innerHTML = stale.map(i => {
+      const completed = Object.values(i.stages).filter(Boolean).length;
+      const nextStage = STAGES[completed];
+      const ts = i.timestamps && i.timestamps[completed];
+      const days = ts ? Math.floor((Date.now() - new Date(ts)) / 86400000) : (i.hireDate ? Math.floor((Date.now() - new Date(i.hireDate)) / 86400000) : '?');
+      return `<div class="reminder-row">
+        <span class="reminder-name">${i.name}</span>
+        <span class="reminder-stage">Stuck on Stage ${completed + 1}: ${nextStage ? nextStage.title : 'Complete'}</span>
+        <span class="reminder-days">${days} days</span>
+      </div>`;
+    }).join('');
+  } else { reminderPanel.style.display = 'none'; }
+  renderAdminTable();
+}
+
+function renderAdminTable() {
+  const all = getAllInspectors();
+  const filter = document.getElementById('stageFilter').value;
+  const search = (document.getElementById('adminSearch').value || '').toLowerCase();
+  let filtered = all.filter(i => {
+    const completed = Object.values(i.stages).filter(Boolean).length;
+    const nameMatch = i.name.toLowerCase().includes(search) || (i.market || '').toLowerCase().includes(search);
+    if (!nameMatch) return false;
+    if (filter === 'all') return true;
+    return completed === parseInt(filter);
+  });
+  const body = document.getElementById('adminTableBody');
+  if (filtered.length === 0) {
+    body.innerHTML = `<div class="empty-state">${all.length === 0 ? 'No inspectors have started yet.' : 'No results match your filter.'}</div>`;
+    return;
+  }
+  const rows = filtered.map(i => {
+    const completed = Object.values(i.stages).filter(Boolean).length;
+    const pct = Math.round((completed / 6) * 100);
+    const pips = [1,2,3,4,5,6].map(s => {
+      const cls = i.stages[s] ? 'pip-done' : (s === completed + 1 ? 'pip-current' : 'pip-pending');
+      return `<span class="stage-pip ${cls}">${i.stages[s] ? '✓' : s}</span>`;
+    }).join('');
+    return `<tr>
+      <td><div class="inspector-name-cell">${i.name}</div><div class="market-tag">${i.market || '—'}</div></td>
+      <td><div class="market-tag">${i.hireDate ? formatDate(i.hireDate) : '—'}</div></td>
+      <td>${pips}</td>
+      <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill" style="width:${pct}%"></div></div><div class="pct-label">${pct}%</div></div></td>
+      <td><button class="action-btn action-clear" onclick="clearInspector('${i.name}')">Clear</button></td>
+    </tr>`;
+  }).join('');
+  body.innerHTML = `<table>
+    <thead><tr><th>Inspector</th><th>Hire date</th><th>Stages</th><th>Progress</th><th>Actions</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function clearInspector(name) {
+  if (!confirm('Clear all progress for ' + name + '?')) return;
+  let index = getAllInspectors().filter(i => i.name !== name);
+  try { localStorage.setItem('gw_inspector_index', JSON.stringify(index)); } catch(e) {}
+  try { localStorage.removeItem(storageKey(name)); } catch(e) {}
+  renderAdminDashboard();
+}
+
+function exportCSV() {
+  const all = getAllInspectors();
+  const headers = ['Name','Market','Hire Date','Stage 1','Stage 2','Stage 3','Stage 4','Stage 5','Stage 6','Complete %'];
+  const rows = all.map(i => {
+    const stages = [1,2,3,4,5,6].map(s => i.stages[s] ? 'Done' : 'Pending');
+    const pct = Math.round((Object.values(i.stages).filter(Boolean).length / 6) * 100) + '%';
+    return [i.name, i.market || '', i.hireDate || '', ...stages, pct];
+  });
+  const csv = [headers, ...rows].map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'GW_Inspector_Onboarding_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+function toggleExtraSection(id) {
+  const body = document.getElementById(id);
+  const chevMap = { contactSection: 'chevContact', offboardSection: 'chevOffboard' };
+  const chev = document.getElementById(chevMap[id]);
+  if (!body) return;
+  body.classList.toggle('open');
+  if (chev) chev.classList.toggle('open');
+}
+
+document.addEventListener('DOMContentLoaded', () => showView('viewLanding'));
+</script>
+</body>
+</html>
