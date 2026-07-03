@@ -196,6 +196,10 @@
   .pip-done { background: var(--gw-green); color: white; }
   .pip-pending { background: #eee; color: #aaa; }
   .pip-current { background: var(--gw-gold); color: white; }
+  .stage-pip { cursor: default; }
+
+  .timeline-row { display: none; }
+  .timeline-row.show { display: table-row; }
 
   .inspector-name-cell { font-weight: 600; color: var(--gw-blue); }
   .market-tag { font-size: 11px; color: var(--gw-gray-light); }
@@ -643,6 +647,15 @@
       </div>
       <div class="admin-toolbar">
         <input class="search-box" type="text" placeholder="Search by name or market..." id="adminSearch" oninput="renderAdminTable()">
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#888;padding:0 20px 12px;">
+        <span><strong style="color:var(--gw-blue)">1</strong> Hiring</span>
+        <span><strong style="color:var(--gw-blue)">2</strong> TREC</span>
+        <span><strong style="color:var(--gw-blue)">3</strong> NACHI</span>
+        <span><strong style="color:var(--gw-blue)">4</strong> BOR</span>
+        <span><strong style="color:var(--gw-blue)">5</strong> SUPRA</span>
+        <span><strong style="color:var(--gw-blue)">6</strong> Reimbursement</span>
+        <span style="margin-left:auto;color:#aaa;">Click a row to see stage-by-stage dates →</span>
       </div>
       <div id="adminTableBody"></div>
     </div>
@@ -1336,6 +1349,13 @@ function renderAdminDashboard() {
   renderAdminTable();
 }
 
+const STAGE_SHORT_NAMES = {1:'Hiring',2:'TREC',3:'NACHI',4:'BOR',5:'SUPRA',6:'Reimbursement'};
+
+function daysBetween(a, b) {
+  if (!a || !b) return null;
+  return Math.round((new Date(b) - new Date(a)) / 86400000);
+}
+
 function renderAdminTable() {
   const all = getAllInspectors();
   const filter = document.getElementById('stageFilter').value;
@@ -1352,19 +1372,51 @@ function renderAdminTable() {
     body.innerHTML = `<div class="empty-state">${all.length === 0 ? 'No inspectors have started yet.' : 'No results match your filter.'}</div>`;
     return;
   }
-  const rows = filtered.map(i => {
+  const rows = filtered.map((i, idx) => {
     const completed = Object.values(i.stages).filter(Boolean).length;
     const pct = Math.round((completed / 6) * 100);
+    const rowId = 'timeline_' + idx;
     const pips = [1,2,3,4,5,6].map(s => {
       const cls = i.stages[s] ? 'pip-done' : (s === completed + 1 ? 'pip-current' : 'pip-pending');
-      return `<span class="stage-pip ${cls}">${i.stages[s] ? '✓' : s}</span>`;
+      const ts = i.timestamps && i.timestamps[s];
+      const tip = i.stages[s] ? `Stage ${s} — ${STAGE_SHORT_NAMES[s]}: completed ${formatDate(ts)}` : `Stage ${s} — ${STAGE_SHORT_NAMES[s]}: not yet complete`;
+      return `<span class="stage-pip ${cls}" title="${tip}">${i.stages[s] ? '✓' : s}</span>`;
     }).join('');
-    return `<tr>
+
+    // Build the per-stage timeline (dates + days taken for each stage)
+    let prevDate = i.hireDate || null;
+    const timelineRows = [1,2,3,4,5,6].map(s => {
+      const done = i.stages[s];
+      const ts = i.timestamps && i.timestamps[s];
+      const days = done ? daysBetween(prevDate, ts) : null;
+      if (done) prevDate = ts;
+      return `<tr>
+        <td style="padding:6px 10px;font-size:12px;color:#333;">Stage ${s} — ${STAGE_SHORT_NAMES[s]}</td>
+        <td style="padding:6px 10px;font-size:12px;color:${done ? 'var(--gw-green-dark)' : '#aaa'};">${done ? formatDate(ts) : '—'}</td>
+        <td style="padding:6px 10px;font-size:12px;color:#666;">${days !== null ? days + (days === 1 ? ' day' : ' days') : '—'}</td>
+      </tr>`;
+    }).join('');
+
+    return `<tr style="cursor:pointer;" onclick="document.getElementById('${rowId}').classList.toggle('show')">
       <td><div class="inspector-name-cell">${i.name}</div><div class="market-tag">${i.market || '—'}</div></td>
       <td><div class="market-tag">${i.hireDate ? formatDate(i.hireDate) : '—'}</div></td>
       <td>${pips}</td>
       <td><div class="pct-bar-wrap"><div class="pct-bar"><div class="pct-bar-fill" style="width:${pct}%"></div></div><div class="pct-label">${pct}%</div></div></td>
-      <td><button class="action-btn action-clear" onclick="clearInspector('${i.name}')">Clear</button></td>
+      <td><button class="action-btn action-clear" onclick="event.stopPropagation();clearInspector('${i.name}')">Clear</button></td>
+    </tr>
+    <tr id="${rowId}" class="timeline-row">
+      <td colspan="5" style="padding:0;">
+        <div style="background:#f7f5ef;border-top:1px solid #e5e0d3;padding:10px 20px;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr>
+              <th style="text-align:left;padding:4px 10px;font-size:11px;color:#888;font-weight:700;">Stage</th>
+              <th style="text-align:left;padding:4px 10px;font-size:11px;color:#888;font-weight:700;">Completed on</th>
+              <th style="text-align:left;padding:4px 10px;font-size:11px;color:#888;font-weight:700;">Days for this stage</th>
+            </tr></thead>
+            <tbody>${timelineRows}</tbody>
+          </table>
+        </div>
+      </td>
     </tr>`;
   }).join('');
   body.innerHTML = `<table>
