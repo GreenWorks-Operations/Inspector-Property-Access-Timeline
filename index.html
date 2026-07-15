@@ -671,7 +671,7 @@
       <div class="stage-num" style="background:var(--gw-gold);"><svg width="18" height="18" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg></div>
       <div class="stage-title-block">
         <div class="stage-title" style="color:var(--gw-green-dark);">Congratulations — you're approved for property access!</div>
-        <div class="stage-sub">Here are some need-to-know details for the field</div>
+        <div class="stage-sub">📌 Reference info only — not one of the 6 required stages</div>
       </div>
       <div class="stage-chevron" id="chevContact">▾</div>
     </div>
@@ -764,8 +764,8 @@ function showView(id) {
   const t = titles[id] || ['GreenWorks',''];
   document.getElementById('headerTitle').textContent = t[0];
   document.getElementById('headerSub').textContent = t[1];
-  const notesEl = document.getElementById('additionalNotes');
-  if (notesEl) notesEl.style.display = id === 'viewChecklist' ? 'block' : 'none';
+  // Note: additionalNotes visibility is controlled by renderChecklist() based on
+  // actual stage completion, not by which view is active — don't override it here.
 }
 
 function showAdminLogin() {
@@ -1098,7 +1098,7 @@ function buildStageDetail(stage, done, isCurrent) {
 
     // Part A
     html += `<div style="border:1.5px solid ${doneA ? 'var(--gw-green)' : '#e0e0e0'};border-radius:8px;padding:16px;margin-bottom:14px;">`;
-    html += `<p style="font-weight:700;font-size:14px;color:${doneA ? 'var(--gw-green-dark)' : 'var(--gw-blue)'};margin-bottom:10px;">${doneA ? '✓ ' : ''}${stage.part_a.title}</p>`;
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;"><p style="font-weight:700;font-size:14px;color:${doneA ? 'var(--gw-green-dark)' : 'var(--gw-blue)'};margin:0;">${doneA ? '✓ ' : ''}${stage.part_a.title}</p>${stage.part_a.badge ? `<span class="stage-badge badge-urgent" style="white-space:nowrap;">${stage.part_a.badge}</span>` : ''}</div>`;
     html += stepList(stage.part_a.steps);
     if (stage.kb) html += `<a class="kb-link" href="${stage.kb.url}" target="_blank" style="margin-top:8px;">📋 ${stage.kb.label}</a>`;
     if (doneA) {
@@ -1110,7 +1110,7 @@ function buildStageDetail(stage, done, isCurrent) {
 
     // Part B
     html += `<div style="border:1.5px solid ${doneB ? 'var(--gw-green)' : doneA ? 'var(--gw-gold)' : '#e0e0e0'};border-radius:8px;padding:16px;${doneA ? '' : 'opacity:0.5;'}">`;
-    html += `<p style="font-weight:700;font-size:14px;color:${doneB ? 'var(--gw-green-dark)' : 'var(--gw-blue)'};margin-bottom:10px;">${doneB ? '✓ ' : ''}${stage.part_b.title}</p>`;
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;"><p style="font-weight:700;font-size:14px;color:${doneB ? 'var(--gw-green-dark)' : 'var(--gw-blue)'};margin:0;">${doneB ? '✓ ' : ''}${stage.part_b.title}</p>${stage.part_b.badge ? `<span class="stage-badge badge-gold" style="white-space:nowrap;">${stage.part_b.badge}</span>` : ''}</div>`;
     if (stage.part_b.note) html += noteBox(stage.part_b.note, stage.part_b.note_type);
     html += stepList(stage.part_b.steps);
     if (doneB) {
@@ -1119,7 +1119,7 @@ function buildStageDetail(stage, done, isCurrent) {
     } else if (doneA) {
       html += `<button class="confirm-btn gold" style="margin-top:12px;" onclick="completeStage(${stage.id},event)">${stage.part_b.button}</button>`;
     } else {
-      html += `<p style="font-size:12px;color:#aaa;text-align:center;margin-top:10px;">Complete Step 2a first to unlock this step</p>`;
+      html += `<p style="font-size:12px;color:#aaa;text-align:center;margin-top:10px;">Complete Step 3a first to unlock this step</p>`;
     }
     html += '</div>';
     return html;
@@ -1187,7 +1187,14 @@ function buildStageDetail(stage, done, isCurrent) {
 
 // ══ STAGES + RENDER ══
 
-const STAGES = [{"id": 1, "title": "Hiring confirmation", "sub": "Onboarding checklist issued \u00b7 deadlines set", "badge": "Day 1", "badge_class": "", "steps": ["Welcome to GreenWorks! These <strong>6 stages are required</strong> before you can access properties for inspections. This process is separate from your BambooHR onboarding \u2014 <strong>both must be completed</strong>.", "GreenWorks maintains a Knowledge Base with step-by-step articles supporting each stage. Bookmark it \u2014 you will reference it throughout this process and beyond. \ud83d\udccb <a href='https://greenworks.tawk.help/category/field-inspector-procedures-training-resources' target='_blank' style='color:var(--gw-blue);font-weight:600;'>GreenWorks Knowledge Base</a>", "Sign and return your <strong>offer letter and all onboarding documents</strong>", "Alex confirms your hire and tags Ops to kick off your access checklist", "Each step below has a <strong>deadline built in</strong> \u2014 these are expected to be met", "<strong>No property access is granted</strong> until all 6 stages are complete"], "note": "<strong>Start Stage 2 (NACHI) today.</strong> It's open to every inspector, CPI or Service Specialist, regardless of TREC certification. If you're already TREC certified, submit Stage 3's TREC DBA update today too \u2014 it takes 2\u20133 weeks to process, so the sooner you start, the sooner everything downstream can move.", "note_type": "success", "kb": null}, {"id": 2, "title": "NACHI profile association", "sub": "Associate your NACHI account to GreenWorks \u2014 open to every inspector", "badge": "Week 1", "badge_class": "", "steps": ["Log into your existing NACHI account at <a href='https://www.nachi.org/auth/login' target='_blank' style='color:var(--gw-blue);font-weight:600;'>nachi.org</a>", "Go to <strong>Account Settings \u2192 Company Association</strong>", "Search for <strong>GreenWorks Inspections & Engineering</strong> and submit the association request", "Take a screenshot confirming your submitted NACHI company affiliation request showing <strong>GreenWorks Inspections &amp; Engineering</strong>", "Post the screenshot in your <strong>AE channel</strong> (AE - First Last - Market) and tag <strong>Operations</strong> \u2014 do not move to Stage 3 until Ops confirms"], "note": "<strong>Open to every inspector, CPI or Service Specialist, regardless of TREC certification.</strong> This does not depend on TREC being complete \u2014 go ahead and knock it out now.", "note_type": "", "note2": "<strong>Billing during account creation:</strong> When setting up your account you will be prompted to enter billing details. <strong>Stop at the billing page \u2014 do not enter payment info.</strong> Notify Ops and GreenWorks will process billing manually through the consolidated company account.", "note2_type": "info"}, {"id": 3, "title": "TREC DBA update", "sub": "TREC-certified inspectors only \u00b7 submit today, return when TREC approves", "badge": "Day 1 \u2192 Week 2\u20133", "badge_class": "urgent", "steps": [], "note": "<strong>TREC-certified inspectors only.</strong> If you are not yet TREC certified, pause here \u2014 you'll come back to this stage once you're certified. Once you reach it, this is the most critical step: all remaining stages depend on GreenWorks being reflected on your TREC profile, so submit the same day you're certified (or the same day you accept your offer, if already certified).", "note_type": "", "note2": null, "note2_type": "info", "kb": {"label": "How to Update Your DBA via TREC \u2014 KB Article", "url": "https://greenworks.tawk.help/article/how-to-update-assumed-business-name-via-trec"}, "two_part": true, "part_a": {"title": "Step 2a \u2014 Submit today", "steps": ["Log into your TREC portal at <a href='https://aca-prod.accela.com/TREC/Default.aspx' target='_blank' style='color:var(--gw-blue);font-weight:600;'>TREC Online Licensing Portal</a>, navigate to <strong>License Maintenance \u2192 Assumed Business Name</strong>, and enter <strong>GreenWorks Inspections &amp; Engineering</strong> as your DBA.", "The GreenWorks KB article linked below includes a <strong>pre-filled Assumed Business Name Certificate</strong> \u2014 download it and upload it to TREC before submitting. <strong>No additional paperwork needed.</strong>", "Submit your application \u2014 TREC will display a Record Issuance confirmation page with a <strong>Record Number (format: AMEND-XX-XXXXX)</strong>. <strong>Screenshot this page.</strong>", "Post the screenshot in your <strong>AE channel</strong> (AE - First Last - Market) and tag <strong>Operations</strong>. This confirms your submission and starts the 2\u20133 week wait."], "button": "\u2713 2a \u2014 Application submitted & screenshot posted"}, "part_b": {"title": "Step 2b \u2014 Come back when approved (2\u20133 weeks)", "note": "TREC will process your application over the next <strong>2\u20133 weeks</strong>. Once approved, GreenWorks Inspections & Engineering will appear under the <strong>DBAs section</strong> on your TREC profile. Come back here to complete this step when that happens.", "note_type": "info", "steps": ["Log back into your TREC portal and navigate to your license profile", "Confirm GreenWorks Inspections & Engineering is listed under your <strong>DBAs</strong>", "<strong>Screenshot your profile</strong> showing GreenWorks listed under DBAs", "Post the screenshot in your <strong>AE channel</strong> (AE - First Last - Market) and tag <strong>Operations</strong> \u2014 this confirms full approval and unlocks Stage 4"], "button": "\u2713 GreenWorks is now reflected on my TREC profile"}}, {"id": 4, "title": "BOR membership & MLS access", "sub": "Join your market BOR to unlock MLS and SUPRA", "badge": "Week 2\u20133", "badge_class": "", "steps": ["Visit your <strong>BOR's website</strong> and complete the membership application online. All associations accept applications through their website \u2014 if you call member services first, they will direct you there anyway.", "Complete enrollment and <strong>pay dues</strong>", "Post your BOR enrollment receipt immediately in <strong>Inspector Payroll \u2192 General</strong>, tag <strong>Trina Harmeson and Operations</strong>, and use the description: <em>BOR Enrollment Receipt \u2014 [Your Name] \u2014 [Market]</em>", "Once membership is confirmed you will receive next steps via email or on-screen"], "note": "<strong>Already a BOR/MLS member?</strong> Skip this stage \u2014 continue paying dues as normal and submit for reimbursement in Stage 6.", "note_type": "gold", "kb": null, "bor_finder": true, "bor_finder_position": "after_first_step"}, {"id": 5, "title": "SUPRA & eKEY activation", "sub": "Activate your lockbox access for field inspections", "badge": "Week 3\u20134", "badge_class": "", "note": "BOR membership must be confirmed before starting this step. Board-specific SUPRA setup (email timing, phone contacts, ID verification) is covered in your board's KB article from Step 4 \u2014 this step is just the eKEY app itself.", "note_type": "gold", "app_card": true, "sub_sections": [{"title": "SUPRA eKEY setup \u2014 all markets", "steps": ["Download the <strong>SUPRA eKEY</strong> app on your mobile device", "Register with your BOR/MLS credentials and complete activation", "If the activation email does not arrive <strong>within 24 hours</strong>, contact your BOR directly", "Once your eKEY is active, post your SUPRA payment receipt in <strong>Inspector Payroll \u2192 General</strong>, tag <strong>Trina Harmeson and Operations</strong>, and use the description: <em>SUPRA Receipt \u2014 [Your Name] \u2014 [Market]</em>"]}]}, {"id": 6, "title": "Dues reimbursement", "sub": "Post receipts as you receive them \u2014 do not wait", "badge": "Get paid back", "badge_class": "gold", "steps": ["Post each receipt in <strong>Inspector Payroll \u2192 General</strong> as it comes in \u2014 do not wait until all stages are complete", "Tag <strong>Trina Harmeson and Operations</strong> and use the description: <em>Access Setup \u2014 [Your Name] \u2014 [Platform]</em>", "Trina will confirm receipt and process reimbursement on the standard payroll cycle"], "note": "All receipts go to Inspector Payroll \u2192 General. Post as they come in \u2014 one at a time is perfectly fine.", "note_type": "success", "note2": "\u26a0\ufe0f Do not send receipts via email or direct message \u2014 Inspector Payroll \u2192 General only.", "note2_type": "info"}];
+const STAGES = [{"id": 1, "title": "Hiring confirmation", "sub": "Onboarding checklist issued \u00b7 deadlines set", "badge": "Day 1", "badge_class": "", "steps": ["Welcome to GreenWorks! These <strong>6 stages are required</strong> before you can access properties for inspections. This process is separate from your BambooHR onboarding \u2014 <strong>both must be completed</strong>.", "This is confirmation that you have signed and returned your <strong>offer letter and all onboarding documents in BambooHR</strong>", "Alex confirms your hire and tags Ops to kick off your access checklist", "Each step below has a <strong>deadline built in</strong> \u2014 these are expected to be met", "<strong>No property access is granted</strong> until all 6 stages are complete"], "note": "<strong>Start Stage 2 (NACHI) today.</strong> It's open to every inspector, CPI or Service Specialist, regardless of TREC certification. If you're already TREC certified, submit Stage 3's TREC DBA update today too \u2014 it takes 2\u20133 weeks to process, so the sooner you start, the sooner everything downstream can move.", "note_type": "success", "kb": null}, {"id": 2, "title": "NACHI profile association", "sub": "Associate your NACHI account to GreenWorks \u2014 open to every inspector", "badge": "Day 1", "badge_class": "", "steps": ["Log into your existing NACHI account at <a href='https://www.nachi.org/auth/login' target='_blank' style='color:var(--gw-blue);font-weight:600;'>nachi.org</a>", "Go to <strong>Account Settings \u2192 Company Association</strong>", "Search for <strong>GreenWorks Inspections & Engineering</strong> and submit the association request", "Take a screenshot confirming your submitted NACHI company affiliation request showing <strong>GreenWorks Inspections &amp; Engineering</strong>", "Post the screenshot in your <strong>AE channel</strong> (AE - First Last - Market) and tag <strong>Operations</strong> \u2014 do not move to Stage 3 until Ops confirms"], "note": "<strong>Open to every inspector, CPI or Service Specialist, regardless of TREC certification.</strong> This does not depend on TREC being complete \u2014 go ahead and knock it out now.", "note_type": "", "note2": "<strong>Billing during account creation:</strong> When setting up your account you will be prompted to enter billing details. <strong>Stop at the billing page \u2014 do not enter payment info.</strong> Notify Ops and GreenWorks will process billing manually through the consolidated company account.", "note2_type": "info"}, {"id": 3, "title": "TREC DBA update", "sub": "TREC-certified inspectors only \u00b7 submit today, return when TREC approves", "badge": "Day 1 (if licensed) \u2192 Week 2\u20133", "badge_class": "urgent", "steps": [], "note": "<strong>TREC-certified inspectors only.</strong> If you are not yet TREC certified, pause here \u2014 you'll come back to this stage once you're certified. Once you reach it, this is the most critical step: all remaining stages depend on GreenWorks being reflected on your TREC profile, so submit the same day you're certified (or the same day you accept your offer, if already certified).", "note_type": "", "note2": null, "note2_type": "info", "kb": {"label": "How to Update Your DBA via TREC \u2014 KB Article", "url": "https://greenworks.tawk.help/article/how-to-update-assumed-business-name-via-trec"}, "two_part": true, "part_a": {"title": "Step 3a \u2014 Submit today (if TREC certified)", "steps": ["Log into your TREC portal at <a href='https://aca-prod.accela.com/TREC/Default.aspx' target='_blank' style='color:var(--gw-blue);font-weight:600;'>TREC Online Licensing Portal</a>, navigate to <strong>License Maintenance \u2192 Assumed Business Name</strong>, and enter <strong>GreenWorks Inspections &amp; Engineering</strong> as your DBA.", "The GreenWorks KB article linked below includes a <strong>pre-filled Assumed Business Name Certificate</strong> \u2014 download it and upload it to TREC before submitting. <strong>No additional paperwork needed.</strong>", "Submit your application \u2014 TREC will display a Record Issuance confirmation page with a <strong>Record Number (format: AMEND-XX-XXXXX)</strong>. <strong>Screenshot this page.</strong>", "Post the screenshot in your <strong>AE channel</strong> (AE - First Last - Market) and tag <strong>Operations</strong>. This confirms your submission and starts the 2\u20133 week wait."], "button": "\u2713 3a \u2014 Application submitted & screenshot posted", "badge": "Day 1 (if licensed)"}, "part_b": {"title": "Step 3b \u2014 Come back when approved (2\u20133 weeks)", "note": "TREC will process your application over the next <strong>2\u20133 weeks</strong>. Once approved, GreenWorks Inspections & Engineering will appear under the <strong>DBAs section</strong> on your TREC profile. Come back here to complete this step when that happens.", "note_type": "info", "steps": ["Log back into your TREC portal and navigate to your license profile", "Confirm GreenWorks Inspections & Engineering is listed under your <strong>DBAs</strong>", "<strong>Screenshot your profile</strong> showing GreenWorks listed under DBAs", "Post the screenshot in your <strong>AE channel</strong> (AE - First Last - Market) and tag <strong>Operations</strong> \u2014 this confirms full approval and unlocks Stage 4"], "button": "\u2713 GreenWorks is now reflected on my TREC profile", "badge": "Week 2\u20133"}}, {"id": 4, "title": "BOR membership & MLS access", "sub": "Join your market BOR to unlock MLS and SUPRA", "badge": "Week 2\u20133", "badge_class": "", "steps": ["Visit your <strong>BOR's website</strong> and complete the membership application online. All associations accept applications through their website \u2014 if you call member services first, they will direct you there anyway.", "Complete enrollment and <strong>pay dues</strong>", "Post your BOR enrollment receipt immediately in <strong>Inspector Payroll \u2192 General</strong>, tag <strong>Trina Harmeson and Operations</strong>, and use the description: <em>BOR Enrollment Receipt \u2014 [Your Name] \u2014 [Market]</em>", "Once membership is confirmed you will receive next steps via email or on-screen"], "note": "<strong>Already a BOR/MLS member?</strong> Skip this stage \u2014 continue paying dues as normal and submit for reimbursement in Stage 6.", "note_type": "gold", "kb": null, "bor_finder": true, "bor_finder_position": "after_first_step"}, {"id": 5, "title": "SUPRA & eKEY activation", "sub": "Activate your lockbox access for field inspections", "badge": "Week 3\u20134", "badge_class": "", "note": "BOR membership must be confirmed before starting this step. Board-specific SUPRA setup (email timing, phone contacts, ID verification) is covered in your board's KB article from Step 4 \u2014 this step is just the eKEY app itself.", "note_type": "gold", "app_card": true, "sub_sections": [{"title": "SUPRA eKEY setup \u2014 all markets", "steps": ["Download the <strong>SUPRA eKEY</strong> app on your mobile device", "Register with your BOR/MLS credentials and complete activation", "If the activation email does not arrive <strong>within 24 hours</strong>, contact your BOR directly", "Once your eKEY is active, post your SUPRA payment receipt in <strong>Inspector Payroll \u2192 General</strong>, tag <strong>Trina Harmeson and Operations</strong>, and use the description: <em>SUPRA Receipt \u2014 [Your Name] \u2014 [Market]</em>"]}]}, {"id": 6, "title": "Dues reimbursement", "sub": "Post receipts as you receive them \u2014 do not wait", "badge": "Get paid back", "badge_class": "gold", "steps": ["Post each receipt in <strong>Inspector Payroll \u2192 General</strong> as it comes in \u2014 do not wait until all stages are complete", "Tag <strong>Trina Harmeson and Operations</strong> and use the description: <em>Access Setup \u2014 [Your Name] \u2014 [Platform]</em>", "Trina will confirm receipt and process reimbursement on the standard payroll cycle"], "note": "All receipts go to Inspector Payroll \u2192 General. Post as they come in \u2014 one at a time is perfectly fine.", "note_type": "success", "note2": "\u26a0\ufe0f Do not send receipts via email or direct message \u2014 Inspector Payroll \u2192 General only.", "note2_type": "info"}];
+
+
+function countCompleted(stages) {
+  let n = 0;
+  for (let s = 1; s <= 6; s++) if (stages[s]) n++;
+  return n;
+}
 
 function renderChecklist() {
   const i = currentInspector;
@@ -1196,7 +1203,7 @@ function renderChecklist() {
   document.getElementById('greetingName').textContent = 'Hey, ' + i.name.split(' ')[0] + '!';
   document.getElementById('greetingMarket').innerHTML = i.market + (i.hireDate ? ' · Hired ' + formatDate(i.hireDate) : '');
 
-  const completed = Object.values(i.stages).filter(Boolean).length;
+  const completed = countCompleted(i.stages);
   const pct = Math.round((completed / 6) * 100);
   const circumference = 163.4;
   const offset = circumference - (pct / 100) * circumference;
@@ -1253,7 +1260,7 @@ function renderChecklist() {
   const allDone = completed === 6;
   document.getElementById('allDoneBanner').classList.toggle('show', allDone);
   const notesEl = document.getElementById('additionalNotes');
-  if (notesEl) notesEl.style.display = 'block';
+  if (notesEl) notesEl.style.display = allDone ? 'block' : 'none';
 }
 
 function toggleStage(n) {
@@ -1315,9 +1322,9 @@ function formatDate(dateStr) {
 function renderAdminDashboard() {
   const all = getAllInspectors();
   const total = all.length;
-  const complete = all.filter(i => Object.values(i.stages).filter(Boolean).length === 6).length;
-  const inProgress = all.filter(i => { const c = Object.values(i.stages).filter(Boolean).length; return c > 0 && c < 6; }).length;
-  const notStarted = all.filter(i => Object.values(i.stages).filter(Boolean).length === 0).length;
+  const complete = all.filter(i => countCompleted(i.stages) === 6).length;
+  const inProgress = all.filter(i => { const c = countCompleted(i.stages); return c > 0 && c < 6; }).length;
+  const notStarted = all.filter(i => countCompleted(i.stages) === 0).length;
   document.getElementById('adminStats').innerHTML = `
     <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total inspectors</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--gw-green)">${complete}</div><div class="stat-label">Fully complete</div></div>
@@ -1325,7 +1332,7 @@ function renderAdminDashboard() {
     <div class="stat-card"><div class="stat-num" style="color:var(--gw-gray-light)">${notStarted}</div><div class="stat-label">Not started</div></div>
   `;
   const stale = all.filter(i => {
-    const completed = Object.values(i.stages).filter(Boolean).length;
+    const completed = countCompleted(i.stages);
     if (completed === 6) return false;
     const ts = i.timestamps && i.timestamps[completed];
     if (!ts && i.hireDate) return Math.floor((Date.now() - new Date(i.hireDate)) / 86400000) >= 3;
@@ -1336,7 +1343,7 @@ function renderAdminDashboard() {
   if (stale.length > 0) {
     reminderPanel.style.display = 'block';
     document.getElementById('reminderList').innerHTML = stale.map(i => {
-      const completed = Object.values(i.stages).filter(Boolean).length;
+      const completed = countCompleted(i.stages);
       const nextStage = STAGES[completed];
       const ts = i.timestamps && i.timestamps[completed];
       const days = ts ? Math.floor((Date.now() - new Date(ts)) / 86400000) : (i.hireDate ? Math.floor((Date.now() - new Date(i.hireDate)) / 86400000) : '?');
@@ -1362,7 +1369,7 @@ function renderAdminTable() {
   const filter = document.getElementById('stageFilter').value;
   const search = (document.getElementById('adminSearch').value || '').toLowerCase();
   let filtered = all.filter(i => {
-    const completed = Object.values(i.stages).filter(Boolean).length;
+    const completed = countCompleted(i.stages);
     const nameMatch = i.name.toLowerCase().includes(search) || (i.market || '').toLowerCase().includes(search);
     if (!nameMatch) return false;
     if (filter === 'all') return true;
@@ -1374,7 +1381,7 @@ function renderAdminTable() {
     return;
   }
   const rows = filtered.map((i, idx) => {
-    const completed = Object.values(i.stages).filter(Boolean).length;
+    const completed = countCompleted(i.stages);
     const pct = Math.round((completed / 6) * 100);
     const rowId = 'timeline_' + idx;
     const pips = [1,2,3,4,5,6].map(s => {
@@ -1439,7 +1446,7 @@ function exportCSV() {
   const headers = ['Name','Market','Hire Date','Stage 1','Stage 2','Stage 3','Stage 4','Stage 5','Stage 6','Complete %'];
   const rows = all.map(i => {
     const stages = [1,2,3,4,5,6].map(s => i.stages[s] ? 'Done' : 'Pending');
-    const pct = Math.round((Object.values(i.stages).filter(Boolean).length / 6) * 100) + '%';
+    const pct = Math.round((countCompleted(i.stages) / 6) * 100) + '%';
     return [i.name, i.market || '', i.hireDate || '', ...stages, pct];
   });
   const csv = [headers, ...rows].map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
