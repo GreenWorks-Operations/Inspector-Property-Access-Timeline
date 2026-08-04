@@ -475,7 +475,7 @@
 <div class="header">
   <div class="header-logo">GreenWorks Inspections &amp; Engineering</div>
   <h1 id="headerTitle">Inspector Property Access Onboarding</h1>
-  <p id="headerSub">Required: complete these 6 stages before your first inspection</p>
+  <p id="headerSub">Required: complete your onboarding stages before your first inspection</p>
 </div>
 
 <!-- BOR Finder Template (hidden, cloned into Stage 4) -->
@@ -499,6 +499,7 @@
         <div class="market-pill" onclick="selectMarket('corpuschristi')">Corpus Christi</div>
         <div class="market-pill" onclick="selectMarket('killeen')">Killeen</div>
         <div class="market-pill" onclick="selectMarket('temple')">Temple</div>
+        <div class="market-pill" onclick="selectMarket('colorado')" style="background:#f9f3e6;border-color:#c6a047;">Colorado</div>
       </div>
       <div class="search-row">
         <input class="search-input" id="borSearch" type="text" placeholder="Or type your county (e.g. Harris, Travis, Tarrant...)">
@@ -539,7 +540,7 @@
     <span class="back-link" onclick="showView('viewLanding')">← Back</span>
     <div class="name-card">
       <h2>Let's get your property access set up</h2>
-      <p>This process is separate from your BambooHR onboarding. Complete all 6 stages to unlock property access for inspections.</p>
+      <p>This process is separate from your BambooHR onboarding. Complete your required stages to unlock property access for inspections.</p>
       <div class="field-group">
         <label>Your full name</label>
         <input type="text" id="inspectorNameInput" placeholder="e.g. John Smith" autocomplete="off" oninput="checkReturningInspector()">
@@ -559,6 +560,7 @@
           <option>Austin</option>
           <option>San Antonio</option>
           <option>Houston</option>
+          <option>Colorado</option>
         </select>
       </div>
       <div class="field-group">
@@ -591,14 +593,14 @@
         </svg>
       </div>
       <div class="progress-text">
-        <h3 id="progressLabel">0 of 6 stages complete</h3>
+        <h3 id="progressLabel">Loading...</h3>
         <p id="progressSub">Start with Stage 1</p>
       </div>
     </div>
     <div id="stageList"></div>
     <div class="all-done-banner" id="allDoneBanner">
       <h2>🎉 You're fully set up!</h2>
-      <p>All 6 stages complete. You now have full property access through GreenWorks. Welcome to the team.</p>
+      <p>All required stages complete. You now have full property access through GreenWorks. Welcome to the team.</p>
     </div>
     <div id="additionalNotes" style="max-width:560px;margin:0 auto;padding:0 16px 20px;display:none;">
 
@@ -754,7 +756,7 @@ function showView(id) {
   document.getElementById(id).classList.add('active');
   window.scrollTo(0,0);
   const titles = {
-    viewLanding: ['Inspector Property Access Onboarding', 'Required: complete these 6 stages before your first inspection'],
+    viewLanding: ['Inspector Property Access Onboarding', 'Required: complete your onboarding stages before your first inspection'],
     viewInspectorName: ['Inspector Property Access Onboarding', 'Property access setup — get started'],
     viewChecklist: ['My Property Access Setup', ''],
     viewAdminLogin: ['Ops Dashboard', ''],
@@ -842,6 +844,17 @@ function loadInspector() {
 
 // ══ BOR DATA ══
 const borData = {
+  colorado: {
+    name: "Colorado — Unregulated State",
+    unregulated: true,
+    notice: "<ul style='margin:0;padding-left:18px;line-height:1.6;'>" +
+      "<li>Colorado doesn't regulate home inspectors — no BOR/MLS membership, no SUPRA eKEY access here</li>" +
+      "<li>The <strong>RSC team handles access</strong> for Colorado properties — you don't need to confirm access with the LA yourself</li>" +
+      "<li>The Route Scheduling Coordinator gets LA contact details on your order</li>" +
+      "<li>The LA should be on-site at your appointment time to let you in</li>" +
+      "<li>Issues on-site? Go to <a href='https://goisn.net/greenworksserviceco/dashboard' target='_blank'>ISN</a>, search the OID, and pull the LA's contact info to reach them directly</li>" +
+      "</ul>"
+  },
   dallas: {
     name: "MetroTex Association of Realtors (DFW)",
     phone: "214-637-6660",
@@ -1061,6 +1074,15 @@ function showBOR(key) {
   if (!bor) return;
   document.getElementById('borNoResult').classList.remove('show');
   document.getElementById('borName').textContent = bor.name;
+
+  if (bor.unregulated) {
+    document.getElementById('borDetails').innerHTML = '';
+    document.getElementById('borSteps').innerHTML = '';
+    document.getElementById('borSupra').innerHTML = `<div class="note-box" style="margin-top:4px">${bor.notice}</div>`;
+    document.getElementById('borResult').classList.add('show');
+    return;
+  }
+
   document.getElementById('borDetails').innerHTML = `
     <div class="bor-detail"><div class="bor-detail-label">Phone</div><div class="bor-detail-value">${bor.phone}</div></div>
     <div class="bor-detail"><div class="bor-detail-label">Email</div><div class="bor-detail-value">${bor.email}</div></div>
@@ -1087,7 +1109,7 @@ function stepList(steps) {
   return '<ul class="step-list">' + steps.map(s => `<li>${s}</li>`).join('') + '</ul>';
 }
 
-function buildStageDetail(stage, done, isCurrent) {
+function buildStageDetail(stage, done, isCurrent, displayNum) {
   let html = '';
 
   // ── LICENSE GATE (Stage 3 — TREC certification check) ──────────────────────
@@ -1096,10 +1118,11 @@ function buildStageDetail(stage, done, isCurrent) {
     if (status === undefined || status === null) {
       html += `<div style="text-align:center;padding:8px 4px 4px;">
         <p style="font-size:14px;color:#444;margin-bottom:14px;font-weight:600;">Are you TREC certified?</p>
-        <div style="display:flex;gap:10px;">
-          <button class="confirm-btn" style="margin-top:0;" onclick="setLicenseStatus(${stage.id},true,event)">✓ Yes, I'm licensed</button>
-          <button class="confirm-btn gold" style="margin-top:0;" onclick="setLicenseStatus(${stage.id},false,event)">Not yet</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="confirm-btn" style="margin-top:0;flex:1;min-width:140px;" onclick="setLicenseStatus(${stage.id},true,event)">✓ Yes, I'm licensed</button>
+          <button class="confirm-btn gold" style="margin-top:0;flex:1;min-width:140px;" onclick="setLicenseStatus(${stage.id},false,event)">Not yet</button>
         </div>
+        <button class="kb-link" style="margin-top:10px;background:none;border:1px solid #ccc;color:#666;width:100%;text-align:center;cursor:pointer;" onclick="setLicenseStatus(${stage.id},'na',event)">🗺️ Outside of Texas — this doesn't apply to me</button>
       </div>`;
       return html;
     }
@@ -1107,10 +1130,25 @@ function buildStageDetail(stage, done, isCurrent) {
       html += `<div style="text-align:center;padding:8px 4px 4px;">
         <p style="font-size:14px;color:#444;margin-bottom:6px;">No problem — <strong>hold off on this stage</strong> until you've finished your schooling and have a license number to show clients. The rest of your checklist is locked until then, so come back once you're certified.</p>
         <button class="confirm-btn" style="margin-top:12px;" onclick="setLicenseStatus(${stage.id},true,event)">✓ I'm now TREC licensed — continue</button>
+        <a style="font-size:12px;color:#888;text-decoration:underline;cursor:pointer;display:inline-block;margin-top:10px;" onclick="resetLicenseGate(${stage.id},event)">Answered wrong? Change your answer</a>
       </div>`;
       return html;
     }
-    // status === true falls through to the normal two-part flow below
+    if (status === 'na') {
+      html += `<div style="text-align:left;padding:16px;background:var(--gw-green-light);border-radius:8px;">
+        <p style="font-size:14px;color:var(--gw-green-dark);font-weight:600;margin:0 0 4px;">✅ Marked not applicable</p>
+        <p style="font-size:13px;color:#3a5a40;margin:0;">TREC licensing is Texas-specific, so this stage doesn't apply to you. Move on to Stage 4 whenever you're ready.</p>
+        <a style="font-size:12px;color:#888;text-decoration:underline;cursor:pointer;display:inline-block;margin-top:10px;" onclick="resetLicenseGate(${stage.id},event)">Not accurate? Reset this stage</a>
+      </div>`;
+      return html;
+    }
+    // status === true falls through to the normal two-part flow below,
+    // with a small reset link shown only if they haven't submitted anything real yet
+    if (status === true && !currentInspector.stages[stage.id + '_a']) {
+      html += `<div style="text-align:right;margin-bottom:6px;">
+        <a style="font-size:12px;color:#888;text-decoration:underline;cursor:pointer;" onclick="resetLicenseGate(${stage.id},event)">Answered wrong? Change your answer</a>
+      </div>`;
+    }
   }
 
   // ── TWO-PART STAGE (Stage 3 — TREC) ────────────────────────────────────────
@@ -1201,7 +1239,7 @@ function buildStageDetail(stage, done, isCurrent) {
     html += `<div class="completed-stamp">✅ Marked complete on ${formatDate(currentInspector.timestamps[stage.id])}</div>`;
     html += `<button class="undo-btn" onclick="undoStage(${stage.id},event)">Undo — mark as incomplete</button>`;
   } else if (isCurrent) {
-    const btnText = stage.id === 1 ? '🔑 Let\'s get you access!' : stage.id === 6 ? '✓ All receipts submitted — I\'m done!' : '✓ Mark Stage ' + stage.id + ' complete';
+    const btnText = stage.id === 1 ? '🔑 Let\'s get you access!' : stage.id === 6 ? '✓ All receipts submitted — I\'m done!' : '✓ Mark Stage ' + (displayNum || stage.id) + ' complete';
     const btnClass = stage.id === 6 ? 'confirm-btn gold' : 'confirm-btn';
     html += `<button class="${btnClass}" onclick="completeStage(${stage.id},event)">${btnText}</button>`;
   }
@@ -1212,12 +1250,26 @@ function buildStageDetail(stage, done, isCurrent) {
 
 // ══ STAGES + RENDER ══
 
-const STAGES = [{"id": 1, "title": "Hiring confirmation", "sub": "Onboarding checklist issued \u00b7 deadlines set", "badge": "Day 1", "badge_class": "", "steps": ["Welcome to GreenWorks! These <strong>6 stages are required</strong> before you can access properties for inspections. This process is separate from your BambooHR onboarding \u2014 <strong>both must be completed</strong>.", "This is confirmation that you have signed and returned your <strong>offer letter and all onboarding documents in BambooHR</strong>", "Each step below has a <strong>deadline built in</strong> \u2014 these are expected to be met", "<strong>No property access is granted</strong> until all 6 stages are complete"], "kb": null}, {"id": 2, "title": "NACHI profile association", "sub": "Associate your NACHI account to GreenWorks \u2014 open to every inspector", "badge": "Day 1", "badge_class": "", "steps": ["Log into your existing NACHI account at <a href='https://www.nachi.org/auth/login' target='_blank' style='color:var(--gw-blue);font-weight:600;'>nachi.org</a> \u2014 if you don't have one, create one.", "Take a screenshot confirming your submitted NACHI company affiliation request showing <strong>GreenWorks Inspections &amp; Engineering</strong>", "Post the screenshot in your <strong>AE channel</strong> (AE - First Last - Market) and tag <strong>Operations</strong>"], "note": "<strong>Open to every inspector, CPI or Service Specialist, regardless of TREC certification.</strong> This does not depend on TREC being complete \u2014 go ahead and knock it out now.", "note_type": "", "note2": "<strong>Billing during account creation:</strong> When setting up your account you will be prompted to enter billing details. <strong>Stop at the billing page \u2014 do not enter payment info.</strong> Notify Ops and GreenWorks will process billing manually through the consolidated company account.", "note2_type": "info", "kb": {"label": "How to Add GreenWorks as Your Associated Business in NACHI \u2014 KB Article", "url": "https://greenworks.tawk.help/article/adding-greenworks-as-your-associated-business-in-nachi"}}, {"id": 3, "title": "TREC DBA update", "sub": "TREC-certified inspectors only \u00b7 submit today, return when TREC approves", "badge": "Day 1 \u2192 Week 2\u20133", "badge_class": "urgent", "steps": [], "note": "<strong>TREC-certified inspectors only.</strong> If you are not yet TREC certified, pause here \u2014 you'll come back to this stage once you're certified. Once you reach it, this is the most critical step: all remaining stages depend on GreenWorks being reflected on your TREC profile, so submit the same day you're certified (or the same day you accept your offer, if already certified).", "note_type": "", "note2": null, "note2_type": "info", "kb": {"label": "How to Update Your DBA via TREC \u2014 KB Article", "url": "https://greenworks.tawk.help/article/how-to-update-assumed-business-name-via-trec"}, "two_part": true, "part_a": {"title": "Step 3a \u2014 Submit today (if TREC certified)", "steps": ["Log into your TREC portal at <a href='https://aca-prod.accela.com/TREC/Default.aspx' target='_blank' style='color:var(--gw-blue);font-weight:600;'>TREC Online Licensing Portal</a> \u2014 if you don't have an account, create one.", "The GreenWorks KB article linked below includes a <strong>pre-filled Assumed Business Name Certificate</strong> \u2014 download it and upload it to TREC before submitting. <strong>No additional paperwork needed.</strong>", "TREC will display a Record Issuance confirmation page with a <strong>Record Number (format: AMEND-XX-XXXXX)</strong>. <strong>Screenshot this page</strong> and post it in your AE channel, tagging Operations."], "button": "\u2713 3a \u2014 Application submitted & screenshot posted", "badge": "Day 1"}, "part_b": {"title": "Step 3b \u2014 Come back when approved (2\u20133 weeks)", "note": "TREC will process your application over the next <strong>2\u20133 weeks</strong>. Come back here once GreenWorks appears under the <strong>DBAs section</strong> on your TREC profile.", "note_type": "info", "steps": ["Search your name on <strong>TREC's public license lookup</strong> \u2014 no login required \u2014 and confirm GreenWorks Inspections & Engineering is listed under <strong>DBAs</strong>", "<strong>Screenshot that page</strong> showing GreenWorks listed as your DBA, and post it in your AE channel tagging Operations \u2014 this confirms full approval and unlocks Stage 4"], "button": "\u2713 GreenWorks is now reflected on my TREC profile", "badge": "Week 2\u20133"}, "license_gate": true}, {"id": 4, "title": "BOR membership & MLS access", "sub": "Join your market BOR to unlock MLS and SUPRA", "badge": "Week 2\u20133", "badge_class": "", "steps": ["Visit your <strong>BOR's website</strong> and complete the membership application online. All associations accept applications through their website \u2014 if you call member services first, they will direct you there.", "Complete enrollment and <strong>pay dues</strong>", "Once membership is confirmed you will receive next steps via email."], "note": "<strong>Already a BOR/MLS member?</strong> Skip this stage \u2014 continue paying dues as normal and submit for reimbursement in Stage 6.", "note_type": "gold", "kb": null, "bor_finder": true, "bor_finder_position": "after_first_step"}, {"id": 5, "title": "SUPRA & eKEY activation", "sub": "Activate your lockbox access for field inspections", "badge": "Week 3\u20134", "badge_class": "", "note": "BOR membership must be confirmed before starting this step. Board-specific SUPRA setup (email timing, phone contacts, ID verification) is covered in your board's KB article from Step 4 \u2014 this step is just the eKEY app itself.", "note_type": "gold", "app_card": true, "sub_sections": [{"title": "SUPRA eKEY setup \u2014 all markets", "steps": ["Download the <strong>SUPRA eKEY</strong> app on your mobile device", "Register with your BOR/MLS credentials and complete activation", "If the activation email does not arrive <strong>within 24 hours</strong>, contact your BOR directly"]}], "footnote": "Reimbursement for SUPRA dues is covered in Stage 6 \u2014 nothing to post here."}, {"id": 6, "title": "Dues reimbursement", "sub": "Submit receipts to get reimbursed", "badge": "Get paid back", "badge_class": "gold", "steps": ["Post each receipt \u2014 <strong>BOR enrollment dues, SUPRA activation fees</strong>, or any other platform receipt \u2014 to <strong>Inspector Payroll \u2192 General</strong>", "Tag <strong>Trina Harmeson and Operations</strong> and use the description: <em>[Platform] Receipt \u2014 [Your Name] \u2014 [Market]</em>", "Trina will confirm receipt and process reimbursement on the standard payroll cycle"], "note": "A <strong>screenshot of each receipt</strong> is required for reimbursement \u2014 no screenshot, no reimbursement.", "note_type": "success", "note2": "\u26a0\ufe0f Do not send receipts via email or direct message \u2014 Inspector Payroll \u2192 General only.", "note2_type": "info"}];
+const STAGES = [{"id": 1, "title": "Hiring confirmation", "sub": "Onboarding checklist issued \u00b7 deadlines set", "badge": "Day 1", "badge_class": "", "steps": ["Welcome to GreenWorks! These <strong>6 stages are required</strong> before you can access properties for inspections. This process is separate from your BambooHR onboarding \u2014 <strong>both must be completed</strong>.", "This is confirmation that you have signed and returned your <strong>offer letter and all onboarding documents in BambooHR</strong>", "Each step below has a <strong>deadline built in</strong> \u2014 these are expected to be met", "<strong>No property access is granted</strong> until all 6 stages are complete"], "kb": null}, {"id": 2, "title": "NACHI profile association", "sub": "Associate your NACHI account to GreenWorks \u2014 open to every inspector", "badge": "Day 1", "badge_class": "", "steps": ["Log into your existing NACHI account at <a href='https://www.nachi.org/auth/login' target='_blank' style='color:var(--gw-blue);font-weight:600;'>nachi.org</a> \u2014 if you don't have one, create one.", "Take a screenshot confirming your submitted NACHI company affiliation request showing <strong>GreenWorks Inspections &amp; Engineering</strong>", "Post the screenshot in your <strong>AE channel</strong> (AE - First Last - Market) and tag <strong>Operations</strong>"], "note": "<strong>Open to every inspector, CPI or Service Specialist, regardless of TREC certification.</strong> This does not depend on TREC being complete \u2014 go ahead and knock it out now.", "note_type": "", "note2": "<strong>Billing during account creation:</strong> When setting up your account you will be prompted to enter billing details. <strong>Stop at the billing page \u2014 do not enter payment info.</strong> Notify Ops and GreenWorks will process billing manually through the consolidated company account.", "note2_type": "info", "kb": {"label": "How to Add GreenWorks as Your Associated Business in NACHI \u2014 KB Article", "url": "https://greenworks.tawk.help/article/adding-greenworks-as-your-associated-business-in-nachi"}}, {"id": 3, "title": "TREC DBA update", "sub": "TREC-certified inspectors only \u00b7 submit today, return when TREC approves", "badge": "Day 1 \u2192 Week 2\u20133", "badge_class": "urgent", "steps": [], "note": "<strong>TREC-certified inspectors only.</strong> If you are not yet TREC certified, pause here \u2014 you'll come back to this stage once you're certified. Once you reach it, this is the most critical step: all remaining stages depend on GreenWorks being reflected on your TREC profile, so submit the same day you're certified (or the same day you accept your offer, if already certified).", "note_type": "", "note2": null, "note2_type": "info", "kb": {"label": "How to Update Your DBA via TREC \u2014 KB Article", "url": "https://greenworks.tawk.help/article/how-to-update-assumed-business-name-via-trec"}, "two_part": true, "part_a": {"title": "Step 3a \u2014 Submit today (if TREC certified)", "steps": ["Log into your TREC portal at <a href='https://aca-prod.accela.com/TREC/Default.aspx' target='_blank' style='color:var(--gw-blue);font-weight:600;'>TREC Online Licensing Portal</a> \u2014 if you don't have an account, create one.", "The GreenWorks KB article linked below includes a <strong>pre-filled Assumed Business Name Certificate</strong> \u2014 download it and upload it to TREC before submitting. <strong>No additional paperwork needed.</strong>", "TREC will display a Record Issuance confirmation page with a <strong>Record Number (format: AMEND-XX-XXXXX)</strong>. <strong>Screenshot this page</strong> and post it in your AE channel, tagging Operations."], "button": "\u2713 3a \u2014 Application submitted & screenshot posted", "badge": "Day 1"}, "part_b": {"title": "Step 3b \u2014 Come back when approved (2\u20133 weeks)", "note": "TREC will process your application over the next <strong>2\u20133 weeks</strong>. Come back here once GreenWorks appears under the <strong>DBAs section</strong> on your TREC profile.", "note_type": "info", "steps": ["Search your name on <strong>TREC's public license lookup</strong> \u2014 no login required \u2014 and confirm GreenWorks Inspections & Engineering is listed under <strong>DBAs</strong>", "<strong>Screenshot that page</strong> showing GreenWorks listed as your DBA, and post it in your AE channel tagging Operations \u2014 this confirms full approval and unlocks Stage 4"], "button": "\u2713 GreenWorks is now reflected on my TREC profile", "badge": "Week 2\u20133"}, "license_gate": true}, {"id": 4, "title": "BOR membership & MLS access", "sub": "Join your market BOR to unlock MLS and SUPRA", "badge": "Week 2\u20133", "badge_class": "", "steps": ["Visit your <strong>BOR's website</strong> and complete the membership application online. All associations accept applications through their website \u2014 if you call member services first, they will direct you there.", "Complete enrollment and <strong>pay dues</strong>", "Once membership is confirmed you will receive next steps via email."], "note": "<strong>Already a BOR/MLS member?</strong> Skip this stage \u2014 continue paying dues as normal and submit for reimbursement in the Reimbursement stage.", "note_type": "gold", "kb": null, "bor_finder": true, "bor_finder_position": "after_first_step"}, {"id": 5, "title": "SUPRA & eKEY activation", "sub": "Activate your lockbox access for field inspections", "badge": "Week 3\u20134", "badge_class": "", "note": "BOR membership must be confirmed before starting this step. Board-specific SUPRA setup (email timing, phone contacts, ID verification) is covered in your board's KB article from Step 4 \u2014 this step is just the eKEY app itself.", "note_type": "gold", "app_card": true, "sub_sections": [{"title": "SUPRA eKEY setup \u2014 all markets", "steps": ["Download the <strong>SUPRA eKEY</strong> app on your mobile device", "Register with your BOR/MLS credentials and complete activation", "If the activation email does not arrive <strong>within 24 hours</strong>, contact your BOR directly"]}], "footnote": "Reimbursement for SUPRA dues is covered in Stage 6 \u2014 nothing to post here."}, {"id": 6, "title": "Dues reimbursement", "sub": "Submit receipts to get reimbursed", "badge": "Get paid back", "badge_class": "gold", "steps": ["Post each receipt \u2014 <strong>BOR enrollment dues, SUPRA activation fees</strong>, or any other platform receipt \u2014 to <strong>Inspector Payroll \u2192 General</strong>", "Tag <strong>Trina Harmeson and Operations</strong> and use the description: <em>[Platform] Receipt \u2014 [Your Name] \u2014 [Market]</em>", "Trina will confirm receipt and process reimbursement on the standard payroll cycle"], "note": "A <strong>screenshot of each receipt</strong> is required for reimbursement \u2014 no screenshot, no reimbursement.", "note_type": "success", "note2": "\u26a0\ufe0f Do not send receipts via email or direct message \u2014 Inspector Payroll \u2192 General only.", "note2_type": "info", "sub_colorado": "GreenWorks supports reimbursement for legitimate inspection costs", "steps_colorado": ["GreenWorks wants working here to be smooth and stress-free. If you come across an <strong>inspection-specific fee</strong> you're paying out of pocket, there may be a chance for reimbursement \u2014 check with Operations.", "Post the receipt in <strong>Inspector Payroll \u2192 General</strong> and tag <strong>Trina Harmeson and Operations</strong> with a description of what it's for", "Trina will confirm receipt and process reimbursement on the standard payroll cycle"], "note_colorado": "In Texas, this is where GreenWorks covers BOR and SUPRA fees. Colorado doesn't have an equivalent requirement today \u2014 but if that ever changes, the same reimbursement process will apply to you."}];
 
 
-function countCompleted(stages) {
+function applicableStageIds(market) {
+  return market === 'Colorado' ? [1, 2, 4, 6] : [1, 2, 3, 4, 5, 6];
+}
+
+function getStageForMarket(stage, market) {
+  if (market !== 'Colorado') return stage;
+  const overrides = {};
+  if (stage.sub_colorado !== undefined) overrides.sub = stage.sub_colorado;
+  if (stage.note_colorado !== undefined) overrides.note = stage.note_colorado;
+  if (stage.note2_colorado !== undefined) overrides.note2 = stage.note2_colorado;
+  if (stage.steps_colorado !== undefined) overrides.steps = stage.steps_colorado;
+  return Object.keys(overrides).length ? Object.assign({}, stage, overrides) : stage;
+}
+
+function countCompleted(stages, market) {
   let n = 0;
-  for (let s = 1; s <= 6; s++) if (stages[s]) n++;
+  applicableStageIds(market).forEach(s => { if (stages[s]) n++; });
   return n;
 }
 
@@ -1228,30 +1280,43 @@ function renderChecklist() {
   document.getElementById('greetingName').textContent = 'Hey, ' + i.name.split(' ')[0] + '!';
   document.getElementById('greetingMarket').innerHTML = i.market + (i.hireDate ? ' · Hired ' + formatDate(i.hireDate) : '');
 
-  const completed = countCompleted(i.stages);
-  const pct = Math.round((completed / 6) * 100);
+  const stageIds = applicableStageIds(i.market);
+  const visibleStages = stageIds.map(id => STAGES.find(s => s.id === id));
+  const total = stageIds.length;
+  const completed = countCompleted(i.stages, i.market);
+  const pct = Math.round((completed / total) * 100);
   const circumference = 163.4;
   const offset = circumference - (pct / 100) * circumference;
   document.getElementById('progressRingFill').style.strokeDashoffset = offset;
-  document.getElementById('progressLabel').textContent = completed + ' of 6 stages complete';
+  document.getElementById('progressLabel').textContent = completed + ' of ' + total + ' stages complete';
 
-  const subs = [
+  const subsStandard = [
     'Start with Stage 1 — hiring confirmation',
-    'Great start — submit TREC DBA today',
-    'TREC submitted — begin NACHI next',
-    'NACHI done — join your BOR next',
+    'Great start — begin NACHI next',
+    'NACHI done — submit TREC DBA next',
+    'TREC submitted — join your BOR next',
     'BOR joined — activate SUPRA next',
     'Almost there — submit reimbursement',
     '🎉 All done — full access granted!'
   ];
+  const subsColorado = [
+    'Start with Stage 1 — hiring confirmation',
+    'Great start — begin NACHI next',
+    'NACHI done — review your Colorado access details next',
+    'Almost there — submit reimbursement',
+    '🎉 All done — full access granted!'
+  ];
+  const subs = i.market === 'Colorado' ? subsColorado : subsStandard;
   document.getElementById('progressSub').textContent = subs[completed];
 
   const list = document.getElementById('stageList');
   list.innerHTML = '';
 
-  STAGES.forEach((stage, idx) => {
+  visibleStages.forEach((rawStage, idx) => {
+    const stage = getStageForMarket(rawStage, i.market);
+    const displayNum = idx + 1;
     const done = i.stages[stage.id];
-    const prevDone = idx === 0 || i.stages[idx];
+    const prevDone = idx === 0 || i.stages[visibleStages[idx - 1].id];
     const isCurrent = !done && prevDone;
     const isLocked = !done && !prevDone;
 
@@ -1270,7 +1335,7 @@ function renderChecklist() {
 
     item.innerHTML = `
       <div class="stage-header" onclick="toggleStage(${stage.id})">
-        <div class="stage-num">${done ? '✓' : stage.id}</div>
+        <div class="stage-num">${done ? '✓' : displayNum}</div>
         <div class="stage-title-block">
           <div class="stage-title">${stage.title}</div>
           <div class="stage-sub">${stage.sub}</div>
@@ -1279,13 +1344,13 @@ function renderChecklist() {
         <div class="stage-chevron" id="chev${stage.id}">▾</div>
       </div>
       <div class="stage-body" id="body${stage.id}">
-        ${buildStageDetail(stage, done, isCurrent)}
+        ${buildStageDetail(stage, done, isCurrent, displayNum)}
       </div>`;
 
     list.appendChild(item);
   });
 
-  const allDone = completed === 6;
+  const allDone = completed === total;
   document.getElementById('allDoneBanner').classList.toggle('show', allDone);
   const notesEl = document.getElementById('additionalNotes');
   if (notesEl) notesEl.style.display = allDone ? 'block' : 'none';
@@ -1303,6 +1368,24 @@ function toggleStage(n) {
 function setLicenseStatus(stageId, status, e) {
   if (e) e.stopPropagation();
   currentInspector.trecLicensed = status;
+  if (status === 'na') {
+    currentInspector.stages[stageId] = true;
+    currentInspector.timestamps[stageId] = new Date().toISOString();
+  }
+  saveInspector(currentInspector);
+  renderChecklist();
+  setTimeout(() => {
+    const body = document.getElementById('body' + stageId);
+    if (body) body.classList.add('open');
+  }, 100);
+}
+
+function resetLicenseGate(stageId, e) {
+  if (e) e.stopPropagation();
+  if (!confirm('Reset this stage back to the certification question?')) return;
+  currentInspector.trecLicensed = null;
+  delete currentInspector.stages[stageId];
+  delete currentInspector.timestamps[stageId];
   saveInspector(currentInspector);
   renderChecklist();
   setTimeout(() => {
@@ -1331,7 +1414,10 @@ function completeStage(id, e) {
   saveInspector(currentInspector);
   renderChecklist();
   setTimeout(() => {
-    const next = document.getElementById('body' + (id + 1));
+    const ids = applicableStageIds(currentInspector.market);
+    const pos = ids.indexOf(id);
+    const nextId = pos >= 0 && pos + 1 < ids.length ? ids[pos + 1] : null;
+    const next = nextId ? document.getElementById('body' + nextId) : null;
     if (next) next.classList.add('open');
   }, 300);
 }
@@ -1361,9 +1447,9 @@ function formatDate(dateStr) {
 function renderAdminDashboard() {
   const all = getAllInspectors();
   const total = all.length;
-  const complete = all.filter(i => countCompleted(i.stages) === 6).length;
-  const inProgress = all.filter(i => { const c = countCompleted(i.stages); return c > 0 && c < 6; }).length;
-  const notStarted = all.filter(i => countCompleted(i.stages) === 0).length;
+  const complete = all.filter(i => countCompleted(i.stages, i.market) === applicableStageIds(i.market).length).length;
+  const inProgress = all.filter(i => { const c = countCompleted(i.stages, i.market); const t = applicableStageIds(i.market).length; return c > 0 && c < t; }).length;
+  const notStarted = all.filter(i => countCompleted(i.stages, i.market) === 0).length;
   document.getElementById('adminStats').innerHTML = `
     <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total inspectors</div></div>
     <div class="stat-card"><div class="stat-num" style="color:var(--gw-green)">${complete}</div><div class="stat-label">Fully complete</div></div>
@@ -1371,9 +1457,11 @@ function renderAdminDashboard() {
     <div class="stat-card"><div class="stat-num" style="color:var(--gw-gray-light)">${notStarted}</div><div class="stat-label">Not started</div></div>
   `;
   const stale = all.filter(i => {
-    const completed = countCompleted(i.stages);
-    if (completed === 6) return false;
-    const ts = i.timestamps && i.timestamps[completed];
+    const ids = applicableStageIds(i.market);
+    const completed = countCompleted(i.stages, i.market);
+    if (completed === ids.length) return false;
+    const nextId = ids[completed];
+    const ts = i.timestamps && i.timestamps[nextId];
     if (!ts && i.hireDate) return Math.floor((Date.now() - new Date(i.hireDate)) / 86400000) >= 3;
     if (ts) return Math.floor((Date.now() - new Date(ts)) / 86400000) >= 5;
     return false;
@@ -1382,9 +1470,11 @@ function renderAdminDashboard() {
   if (stale.length > 0) {
     reminderPanel.style.display = 'block';
     document.getElementById('reminderList').innerHTML = stale.map(i => {
-      const completed = countCompleted(i.stages);
-      const nextStage = STAGES[completed];
-      const ts = i.timestamps && i.timestamps[completed];
+      const ids = applicableStageIds(i.market);
+      const completed = countCompleted(i.stages, i.market);
+      const nextId = ids[completed];
+      const nextStage = STAGES.find(s => s.id === nextId);
+      const ts = i.timestamps && i.timestamps[nextId];
       const days = ts ? Math.floor((Date.now() - new Date(ts)) / 86400000) : (i.hireDate ? Math.floor((Date.now() - new Date(i.hireDate)) / 86400000) : '?');
       return `<div class="reminder-row">
         <span class="reminder-name">${i.name}</span>
@@ -1408,7 +1498,7 @@ function renderAdminTable() {
   const filter = document.getElementById('stageFilter').value;
   const search = (document.getElementById('adminSearch').value || '').toLowerCase();
   let filtered = all.filter(i => {
-    const completed = countCompleted(i.stages);
+    const completed = countCompleted(i.stages, i.market);
     const nameMatch = i.name.toLowerCase().includes(search) || (i.market || '').toLowerCase().includes(search);
     if (!nameMatch) return false;
     if (filter === 'all') return true;
@@ -1420,25 +1510,32 @@ function renderAdminTable() {
     return;
   }
   const rows = filtered.map((i, idx) => {
-    const completed = countCompleted(i.stages);
-    const pct = Math.round((completed / 6) * 100);
+    const ids = applicableStageIds(i.market);
+    const total = ids.length;
+    const completed = countCompleted(i.stages, i.market);
+    const pct = Math.round((completed / total) * 100);
     const rowId = 'timeline_' + idx;
+    let posCounter = 0;
     const pips = [1,2,3,4,5,6].map(s => {
-      const cls = i.stages[s] ? 'pip-done' : (s === completed + 1 ? 'pip-current' : 'pip-pending');
+      if (!ids.includes(s)) {
+        return `<span class="stage-pip pip-pending" style="opacity:0.35;" title="Stage ${s} — ${STAGE_SHORT_NAMES[s]}: not applicable for ${i.market || 'this market'}">—</span>`;
+      }
+      posCounter++;
+      const cls = i.stages[s] ? 'pip-done' : (posCounter === completed + 1 ? 'pip-current' : 'pip-pending');
       const ts = i.timestamps && i.timestamps[s];
-      const tip = i.stages[s] ? `Stage ${s} — ${STAGE_SHORT_NAMES[s]}: completed ${formatDate(ts)}` : `Stage ${s} — ${STAGE_SHORT_NAMES[s]}: not yet complete`;
-      return `<span class="stage-pip ${cls}" title="${tip}">${i.stages[s] ? '✓' : s}</span>`;
+      const tip = i.stages[s] ? `Stage ${posCounter} — ${STAGE_SHORT_NAMES[s]}: completed ${formatDate(ts)}` : `Stage ${posCounter} — ${STAGE_SHORT_NAMES[s]}: not yet complete`;
+      return `<span class="stage-pip ${cls}" title="${tip}">${i.stages[s] ? '✓' : posCounter}</span>`;
     }).join('');
 
-    // Build the per-stage timeline (dates + days taken for each stage)
+    // Build the per-stage timeline (dates + days taken) — only for stages applicable to this inspector's market
     let prevDate = i.hireDate || null;
-    const timelineRows = [1,2,3,4,5,6].map(s => {
+    const timelineRows = ids.map((s, pos) => {
       const done = i.stages[s];
       const ts = i.timestamps && i.timestamps[s];
       const days = done ? daysBetween(prevDate, ts) : null;
       if (done) prevDate = ts;
       return `<tr>
-        <td style="padding:6px 10px;font-size:12px;color:#333;">Stage ${s} — ${STAGE_SHORT_NAMES[s]}</td>
+        <td style="padding:6px 10px;font-size:12px;color:#333;">Stage ${pos + 1} — ${STAGE_SHORT_NAMES[s]}</td>
         <td style="padding:6px 10px;font-size:12px;color:${done ? 'var(--gw-green-dark)' : '#aaa'};">${done ? formatDate(ts) : '—'}</td>
         <td style="padding:6px 10px;font-size:12px;color:#666;">${days !== null ? days + (days === 1 ? ' day' : ' days') : '—'}</td>
       </tr>`;
@@ -1484,8 +1581,9 @@ function exportCSV() {
   const all = getAllInspectors();
   const headers = ['Name','Market','Hire Date','Stage 1','Stage 2','Stage 3','Stage 4','Stage 5','Stage 6','Complete %'];
   const rows = all.map(i => {
-    const stages = [1,2,3,4,5,6].map(s => i.stages[s] ? 'Done' : 'Pending');
-    const pct = Math.round((countCompleted(i.stages) / 6) * 100) + '%';
+    const ids = applicableStageIds(i.market);
+    const stages = [1,2,3,4,5,6].map(s => !ids.includes(s) ? 'N/A' : (i.stages[s] ? 'Done' : 'Pending'));
+    const pct = Math.round((countCompleted(i.stages, i.market) / ids.length) * 100) + '%';
     return [i.name, i.market || '', i.hireDate || '', ...stages, pct];
   });
   const csv = [headers, ...rows].map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
