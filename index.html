@@ -165,7 +165,27 @@
   .all-done-banner p { font-size: 14px; color: rgba(255,255,255,0.85); }
 
   /* ── ADMIN VIEW ── */
-  .admin-wrap { max-width: 900px; margin: 0 auto; padding: 20px 16px 60px; }
+  .admin-wrap { max-width: 1180px; margin: 0 auto; padding: 20px 16px 60px; }
+  .admin-grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .admin-grid { grid-template-columns: 1fr; } }
+  .bor-chart-panel { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; position: sticky; top: 20px; }
+  .bor-chart-panel h3 { font-size: 15px; margin-bottom: 4px; color: var(--gw-green-dark); }
+  .bor-chart-panel .bor-chart-sub { font-size: 12px; color: #888; margin-bottom: 16px; }
+  .bor-chart-row { margin-bottom: 12px; }
+  .bor-chart-row-top { display: flex; justify-content: space-between; font-size: 12px; color: #333; margin-bottom: 4px; }
+  .bor-chart-track { background: #eee; border-radius: 6px; height: 10px; overflow: hidden; }
+  .bor-chart-fill { background: var(--gw-blue); height: 100%; border-radius: 6px; transition: width 0.3s; }
+  .bor-chart-fill.gold { background: var(--gw-gold); }
+  .donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+  .donut { width: 168px; height: 168px; border-radius: 50%; position: relative; flex-shrink: 0; }
+  .donut-hole { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 108px; height: 108px; background: white; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px #f0f0f0; }
+  .donut-hole .donut-num { font-size: 24px; font-weight: 800; color: var(--gw-green-dark); line-height: 1; }
+  .donut-hole .donut-lbl { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }
+  .bor-legend { width: 100%; }
+  .bor-legend-row { display: flex; align-items: center; gap: 8px; font-size: 12.5px; margin-bottom: 10px; }
+  .bor-legend-swatch { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+  .bor-legend-label { flex: 1; color: #333; }
+  .bor-legend-count { font-weight: 700; color: #333; }
   .admin-password-screen { max-width: 400px; margin: 60px auto; padding: 0 20px; }
   .admin-password-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 32px 28px; text-align: center; }
   .admin-password-card h2 { font-size: 20px; font-weight: 700; color: var(--gw-blue); margin-bottom: 6px; }
@@ -694,33 +714,40 @@
       <h3>⚠️ Inspectors needing a nudge</h3>
       <div id="reminderList"></div>
     </div>
-    <div class="admin-table-wrap">
-      <div class="admin-table-header">
-        <h3>All Inspectors</h3>
-        <select class="admin-filter" id="stageFilter" onchange="renderAdminTable()">
-          <option value="all">All stages</option>
-          <option value="0">Not started</option>
-          <option value="1">Stage 1 done</option>
-          <option value="2">Stage 2 done</option>
-          <option value="3">Stage 3 done</option>
-          <option value="4">Stage 4 done</option>
-          <option value="5">Stage 5 done</option>
-          <option value="6">All complete</option>
-        </select>
+    <div class="admin-grid">
+      <div class="admin-table-wrap">
+        <div class="admin-table-header">
+          <h3>All Inspectors</h3>
+          <select class="admin-filter" id="stageFilter" onchange="renderAdminTable()">
+            <option value="all">All stages</option>
+            <option value="0">Not started</option>
+            <option value="1">Stage 1 done</option>
+            <option value="2">Stage 2 done</option>
+            <option value="3">Stage 3 done</option>
+            <option value="4">Stage 4 done</option>
+            <option value="5">Stage 5 done</option>
+            <option value="6">All complete</option>
+          </select>
+        </div>
+        <div class="admin-toolbar">
+          <input class="search-box" type="text" placeholder="Search by name or market..." id="adminSearch" oninput="renderAdminTable()">
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#888;padding:0 20px 12px;">
+          <span><strong style="color:var(--gw-blue)">1</strong> Hiring</span>
+          <span><strong style="color:var(--gw-blue)">2</strong> NACHI</span>
+          <span><strong style="color:var(--gw-blue)">3</strong> TREC</span>
+          <span><strong style="color:var(--gw-blue)">4</strong> BOR</span>
+          <span><strong style="color:var(--gw-blue)">5</strong> SUPRA</span>
+          <span><strong style="color:var(--gw-blue)">6</strong> Reimbursement</span>
+          <span style="margin-left:auto;color:#aaa;">Click a row to see stage-by-stage dates →</span>
+        </div>
+        <div id="adminTableBody"></div>
       </div>
-      <div class="admin-toolbar">
-        <input class="search-box" type="text" placeholder="Search by name or market..." id="adminSearch" oninput="renderAdminTable()">
+      <div class="bor-chart-panel">
+        <h3>📊 BOR Distribution</h3>
+        <div class="bor-chart-sub">Inspectors per board, based on Stage 4 selections</div>
+        <div id="borChart"></div>
       </div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#888;padding:0 20px 12px;">
-        <span><strong style="color:var(--gw-blue)">1</strong> Hiring</span>
-        <span><strong style="color:var(--gw-blue)">2</strong> NACHI</span>
-        <span><strong style="color:var(--gw-blue)">3</strong> TREC</span>
-        <span><strong style="color:var(--gw-blue)">4</strong> BOR</span>
-        <span><strong style="color:var(--gw-blue)">5</strong> SUPRA</span>
-        <span><strong style="color:var(--gw-blue)">6</strong> Reimbursement</span>
-        <span style="margin-left:auto;color:#aaa;">Click a row to see stage-by-stage dates →</span>
-      </div>
-      <div id="adminTableBody"></div>
     </div>
   </div>
 </div>
@@ -1074,6 +1101,12 @@ function showBOR(key) {
   if (!bor) return;
   document.getElementById('borNoResult').classList.remove('show');
   document.getElementById('borName').textContent = bor.name;
+
+  if (currentInspector) {
+    currentInspector.borChoice = key;
+    currentInspector.borChoiceName = bor.name;
+    saveInspector(currentInspector);
+  }
 
   if (bor.unregulated) {
     document.getElementById('borDetails').innerHTML = '';
@@ -1484,6 +1517,59 @@ function renderAdminDashboard() {
     }).join('');
   } else { reminderPanel.style.display = 'none'; }
   renderAdminTable();
+  renderBorChart();
+}
+
+function renderBorChart() {
+  const all = getAllInspectors();
+  const counts = {};
+  all.forEach(i => {
+    if (!i.borChoice) return;
+    const label = i.borChoiceName || i.borChoice;
+    counts[label] = (counts[label] || 0) + 1;
+  });
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const chartEl = document.getElementById('borChart');
+  if (!chartEl) return;
+  if (entries.length === 0) {
+    chartEl.innerHTML = `<div style="font-size:12px;color:#aaa;text-align:center;padding:20px 0;">No BOR selections yet</div>`;
+    return;
+  }
+
+  const palette = ['#124682', '#c6a047', '#2d6a4f', '#8e44ad', '#c0392b', '#16a085', '#e67e22', '#34495e'];
+  const total = entries.reduce((sum, [, c]) => sum + c, 0);
+
+  let cumulative = 0;
+  const gradientStops = [];
+  const colorFor = (label, idx) => label.includes('Colorado') ? '#9e9e9e' : palette[idx % palette.length];
+
+  entries.forEach(([label, count], idx) => {
+    const color = colorFor(label, idx);
+    const startPct = (cumulative / total) * 100;
+    cumulative += count;
+    const endPct = (cumulative / total) * 100;
+    gradientStops.push(`${color} ${startPct}% ${endPct}%`);
+  });
+
+  const legendHtml = entries.map(([label, count], idx) => {
+    const color = colorFor(label, idx);
+    return `<div class="bor-legend-row">
+      <span class="bor-legend-swatch" style="background:${color}"></span>
+      <span class="bor-legend-label">${label}</span>
+      <span class="bor-legend-count">${count}</span>
+    </div>`;
+  }).join('');
+
+  chartEl.innerHTML = `
+    <div class="donut-wrap">
+      <div class="donut" style="background: conic-gradient(${gradientStops.join(', ')});">
+        <div class="donut-hole">
+          <div class="donut-num">${total}</div>
+          <div class="donut-lbl">Total</div>
+        </div>
+      </div>
+      <div class="bor-legend">${legendHtml}</div>
+    </div>`;
 }
 
 const STAGE_SHORT_NAMES = {1:'Hiring',2:'NACHI',3:'TREC',4:'BOR',5:'SUPRA',6:'Reimbursement'};
