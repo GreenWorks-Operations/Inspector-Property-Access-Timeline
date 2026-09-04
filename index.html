@@ -761,40 +761,61 @@
 // ══ ADMIN PASSWORD ══
 const ADMIN_PASSWORD = 'GWops2026';
 
-// ══ STORAGE ══
-function storageKey(name) { return 'gw_onboarding_' + name.toLowerCase().replace(/\s+/g, '_'); }
-const INDEX_KEY = 'gw_inspector_index';
+// ══ STORAGE — Firebase Realtime Database ══
+const FB_URL = 'https://inspector-property-access-default-rtdb.firebaseio.com';
+
+async function fbSet(path, data) {
+  const res = await fetch(`${FB_URL}/${path}.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('Firebase write failed: ' + res.status);
+  return res.json();
+}
+
+async function fbGet(path) {
+  const res = await fetch(`${FB_URL}/${path}.json`);
+  if (!res.ok) throw new Error('Firebase read failed: ' + res.status);
+  return res.json();
+}
+
+async function fbDelete(path) {
+  const res = await fetch(`${FB_URL}/${path}.json`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Firebase delete failed: ' + res.status);
+}
+
+function storageKey(name) {
+  return 'gw_' + name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+}
 
 async function saveInspector(inspector) {
   try {
-    await window.storage.set(storageKey(inspector.name), JSON.stringify(inspector));
-    let index = await getAllInspectors();
-    const existing = index.findIndex(i => i.name === inspector.name);
-    if (existing >= 0) index[existing] = inspector; else index.push(inspector);
-    await window.storage.set(INDEX_KEY, JSON.stringify(index));
+    const key = storageKey(inspector.name);
+    await fbSet('inspectors/' + key, inspector);
   } catch(e) { console.error('saveInspector error:', e); }
 }
 
 async function getAllInspectors() {
   try {
-    const result = await window.storage.get(INDEX_KEY);
-    return result ? JSON.parse(result.value) : [];
-  } catch(e) { return []; }
+    const data = await fbGet('inspectors');
+    if (!data) return [];
+    return Object.values(data);
+  } catch(e) { console.error('getAllInspectors error:', e); return []; }
 }
 
 async function loadInspectorData(name) {
   try {
-    const result = await window.storage.get(storageKey(name));
-    return result ? JSON.parse(result.value) : null;
+    const key = storageKey(name);
+    const data = await fbGet('inspectors/' + key);
+    return data || null;
   } catch(e) { return null; }
 }
 
 async function deleteInspector(name) {
   try {
-    await window.storage.delete(storageKey(name));
-    let index = await getAllInspectors();
-    index = index.filter(i => i.name !== name);
-    await window.storage.set(INDEX_KEY, JSON.stringify(index));
+    const key = storageKey(name);
+    await fbDelete('inspectors/' + key);
   } catch(e) { console.error('deleteInspector error:', e); }
 }
 
