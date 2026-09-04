@@ -718,7 +718,7 @@
       <div class="admin-table-wrap">
         <div class="admin-table-header">
           <h3>All Inspectors</h3>
-          <select class="admin-filter" id="stageFilter" onchange="renderAdminTable()">
+          <select class="admin-filter" id="stageFilter" onchange="renderAdminDashboard()">
             <option value="all">All stages</option>
             <option value="0">Not started</option>
             <option value="1">Stage 1 done</option>
@@ -730,7 +730,7 @@
           </select>
         </div>
         <div class="admin-toolbar">
-          <input class="search-box" type="text" placeholder="Search by name or market..." id="adminSearch" oninput="renderAdminTable()">
+          <input class="search-box" type="text" placeholder="Search by name or market..." id="adminSearch" oninput="renderAdminDashboard()">
         </div>
         <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:#888;padding:0 20px 12px;">
           <span><strong style="color:var(--gw-blue)">1</strong> Hiring</span>
@@ -763,18 +763,39 @@ const ADMIN_PASSWORD = 'GWops2026';
 
 // ══ STORAGE ══
 function storageKey(name) { return 'gw_onboarding_' + name.toLowerCase().replace(/\s+/g, '_'); }
-function saveInspector(inspector) {
-  try { localStorage.setItem(storageKey(inspector.name), JSON.stringify(inspector)); } catch(e) {}
-  let index = getAllInspectors();
-  const existing = index.findIndex(i => i.name === inspector.name);
-  if (existing >= 0) index[existing] = inspector; else index.push(inspector);
-  try { localStorage.setItem('gw_inspector_index', JSON.stringify(index)); } catch(e) {}
+const INDEX_KEY = 'gw_inspector_index';
+
+async function saveInspector(inspector) {
+  try {
+    await window.storage.set(storageKey(inspector.name), JSON.stringify(inspector));
+    let index = await getAllInspectors();
+    const existing = index.findIndex(i => i.name === inspector.name);
+    if (existing >= 0) index[existing] = inspector; else index.push(inspector);
+    await window.storage.set(INDEX_KEY, JSON.stringify(index));
+  } catch(e) { console.error('saveInspector error:', e); }
 }
-function getAllInspectors() {
-  try { return JSON.parse(localStorage.getItem('gw_inspector_index') || '[]'); } catch(e) { return []; }
+
+async function getAllInspectors() {
+  try {
+    const result = await window.storage.get(INDEX_KEY);
+    return result ? JSON.parse(result.value) : [];
+  } catch(e) { return []; }
 }
-function loadInspectorData(name) {
-  try { return JSON.parse(localStorage.getItem(storageKey(name))); } catch(e) { return null; }
+
+async function loadInspectorData(name) {
+  try {
+    const result = await window.storage.get(storageKey(name));
+    return result ? JSON.parse(result.value) : null;
+  } catch(e) { return null; }
+}
+
+async function deleteInspector(name) {
+  try {
+    await window.storage.delete(storageKey(name));
+    let index = await getAllInspectors();
+    index = index.filter(i => i.name !== name);
+    await window.storage.set(INDEX_KEY, JSON.stringify(index));
+  } catch(e) { console.error('deleteInspector error:', e); }
 }
 
 // ══ NAVIGATION ══
@@ -814,7 +835,7 @@ function checkAdminPass() {
 // ══ INSPECTOR LOAD ══
 let currentInspector = null;
 
-function checkReturningInspector() {
+async function checkReturningInspector() {
   const name = document.getElementById('inspectorNameInput').value.trim();
   const returning = document.getElementById('returningBanner');
   const newFields = document.getElementById('newInspectorFields');
@@ -827,7 +848,7 @@ function checkReturningInspector() {
     return;
   }
 
-  const existing = loadInspectorData(name);
+  const existing = await loadInspectorData(name);
   if (existing) {
     document.getElementById('returningName').textContent = name.split(' ')[0];
     returning.style.display = 'block';
@@ -840,9 +861,9 @@ function checkReturningInspector() {
   }
 }
 
-function loadReturningInspector() {
+async function loadReturningInspector() {
   const name = document.getElementById('inspectorNameInput').value.trim();
-  const existing = loadInspectorData(name);
+  const existing = await loadInspectorData(name);
   if (existing) {
     currentInspector = existing;
     renderChecklist();
@@ -851,18 +872,18 @@ function loadReturningInspector() {
   }
 }
 
-function loadInspector() {
+async function loadInspector() {
   const name = document.getElementById('inspectorNameInput').value.trim();
   const market = document.getElementById('marketSelect').value;
   const hireDate = document.getElementById('hireDateInput').value;
   if (!name) { alert('Please enter your name.'); return; }
   if (!market) { alert('Please select your market.'); return; }
-  let existing = loadInspectorData(name);
+  let existing = await loadInspectorData(name);
   if (existing) {
     currentInspector = existing;
   } else {
     currentInspector = { name, market, hireDate, stages: {}, timestamps: {} };
-    saveInspector(currentInspector);
+    await saveInspector(currentInspector);
   }
   renderChecklist();
   showView('viewChecklist');
@@ -1096,7 +1117,7 @@ function searchBOR() {
   }
 }
 
-function showBOR(key) {
+async function showBOR(key) {
   const bor = borData[key];
   if (!bor) return;
   document.getElementById('borNoResult').classList.remove('show');
@@ -1105,7 +1126,7 @@ function showBOR(key) {
   if (currentInspector) {
     currentInspector.borChoice = key;
     currentInspector.borChoiceName = bor.name;
-    saveInspector(currentInspector);
+    await saveInspector(currentInspector);
   }
 
   if (bor.unregulated) {
@@ -1398,14 +1419,14 @@ function toggleStage(n) {
   chev.classList.toggle('open', !isOpen);
 }
 
-function setLicenseStatus(stageId, status, e) {
+async function setLicenseStatus(stageId, status, e) {
   if (e) e.stopPropagation();
   currentInspector.trecLicensed = status;
   if (status === 'na') {
     currentInspector.stages[stageId] = true;
     currentInspector.timestamps[stageId] = new Date().toISOString();
   }
-  saveInspector(currentInspector);
+  await saveInspector(currentInspector);
   renderChecklist();
   setTimeout(() => {
     const body = document.getElementById('body' + stageId);
@@ -1413,13 +1434,13 @@ function setLicenseStatus(stageId, status, e) {
   }, 100);
 }
 
-function resetLicenseGate(stageId, e) {
+async function resetLicenseGate(stageId, e) {
   if (e) e.stopPropagation();
   if (!confirm('Reset this stage back to the certification question?')) return;
   currentInspector.trecLicensed = null;
   delete currentInspector.stages[stageId];
   delete currentInspector.timestamps[stageId];
-  saveInspector(currentInspector);
+  await saveInspector(currentInspector);
   renderChecklist();
   setTimeout(() => {
     const body = document.getElementById('body' + stageId);
@@ -1427,24 +1448,23 @@ function resetLicenseGate(stageId, e) {
   }, 100);
 }
 
-function completeSubStage(stageId, part, e) {
+async function completeSubStage(stageId, part, e) {
   e.stopPropagation();
   currentInspector.stages[stageId + '_' + part] = true;
   currentInspector.timestamps[stageId + '_' + part] = new Date().toISOString();
-  saveInspector(currentInspector);
+  await saveInspector(currentInspector);
   renderChecklist();
-  // Keep stage 2 open so they can see part b
   setTimeout(() => {
     const body = document.getElementById('body' + stageId);
     if (body) body.classList.add('open');
   }, 100);
 }
 
-function completeStage(id, e) {
+async function completeStage(id, e) {
   e.stopPropagation();
   currentInspector.stages[id] = true;
   currentInspector.timestamps[id] = new Date().toISOString();
-  saveInspector(currentInspector);
+  await saveInspector(currentInspector);
   renderChecklist();
   setTimeout(() => {
     const ids = applicableStageIds(currentInspector.market);
@@ -1455,14 +1475,14 @@ function completeStage(id, e) {
   }, 300);
 }
 
-function undoStage(id, e) {
+async function undoStage(id, e) {
   e.stopPropagation();
   if (!confirm('Mark Stage ' + id + ' as incomplete?')) return;
   for (let s = id; s <= 6; s++) {
     delete currentInspector.stages[s];
     delete currentInspector.timestamps[s];
   }
-  saveInspector(currentInspector);
+  await saveInspector(currentInspector);
   renderChecklist();
 }
 
@@ -1477,8 +1497,9 @@ function formatDate(dateStr) {
 }
 
 // ══ ADMIN ══
-function renderAdminDashboard() {
-  const all = getAllInspectors();
+async function renderAdminDashboard() {
+  document.getElementById('adminStats').innerHTML = `<div style="color:#aaa;font-size:13px;padding:8px;">Loading...</div>`;
+  const all = await getAllInspectors();
   const total = all.length;
   const complete = all.filter(i => countCompleted(i.stages, i.market) === applicableStageIds(i.market).length).length;
   const inProgress = all.filter(i => { const c = countCompleted(i.stages, i.market); const t = applicableStageIds(i.market).length; return c > 0 && c < t; }).length;
@@ -1516,12 +1537,11 @@ function renderAdminDashboard() {
       </div>`;
     }).join('');
   } else { reminderPanel.style.display = 'none'; }
-  renderAdminTable();
-  renderBorChart();
+  renderAdminTable(all);
+  renderBorChart(all);
 }
 
-function renderBorChart() {
-  const all = getAllInspectors();
+function renderBorChart(all) {
   const counts = {};
   all.forEach(i => {
     if (!i.borChoice) return;
@@ -1579,8 +1599,7 @@ function daysBetween(a, b) {
   return Math.round((new Date(b) - new Date(a)) / 86400000);
 }
 
-function renderAdminTable() {
-  const all = getAllInspectors();
+function renderAdminTable(all) {
   const filter = document.getElementById('stageFilter').value;
   const search = (document.getElementById('adminSearch').value || '').toLowerCase();
   let filtered = all.filter(i => {
@@ -1655,16 +1674,14 @@ function renderAdminTable() {
   </table>`;
 }
 
-function clearInspector(name) {
+async function clearInspector(name) {
   if (!confirm('Clear all progress for ' + name + '?')) return;
-  let index = getAllInspectors().filter(i => i.name !== name);
-  try { localStorage.setItem('gw_inspector_index', JSON.stringify(index)); } catch(e) {}
-  try { localStorage.removeItem(storageKey(name)); } catch(e) {}
+  await deleteInspector(name);
   renderAdminDashboard();
 }
 
-function exportCSV() {
-  const all = getAllInspectors();
+async function exportCSV() {
+  const all = await getAllInspectors();
   const headers = ['Name','Market','Hire Date','Stage 1','Stage 2','Stage 3','Stage 4','Stage 5','Stage 6','Complete %'];
   const rows = all.map(i => {
     const ids = applicableStageIds(i.market);
