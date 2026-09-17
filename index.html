@@ -800,7 +800,13 @@ async function getAllInspectors() {
   try {
     const data = await fbGet('inspectors');
     if (!data) return [];
-    return Object.values(data);
+    return Object.values(data)
+      .filter(i => i && typeof i === 'object' && i.name)
+      .map(i => ({
+        ...i,
+        stages: i.stages || {},
+        timestamps: i.timestamps || {}
+      }));
   } catch(e) { console.error('getAllInspectors error:', e); return []; }
 }
 
@@ -1329,7 +1335,7 @@ const STAGES = [{"id": 1, "title": "Hiring confirmation", "sub": "Onboarding che
 
 
 function applicableStageIds(market) {
-  return market === 'Colorado' ? [1, 2, 4, 6] : [1, 2, 3, 4, 5, 6];
+  return (market || '') === 'Colorado' ? [1, 2, 4, 6] : [1, 2, 3, 4, 5, 6];
 }
 
 function getStageForMarket(stage, market) {
@@ -1343,6 +1349,7 @@ function getStageForMarket(stage, market) {
 }
 
 function countCompleted(stages, market) {
+  if (!stages || typeof stages !== 'object') return 0;
   let n = 0;
   applicableStageIds(market).forEach(s => { if (stages[s]) n++; });
   return n;
