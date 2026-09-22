@@ -1703,7 +1703,13 @@ function renderAdminTable(all) {
 }
 
 async function clearInspector(name) {
-  if (!confirm('Clear all progress for ' + name + '?')) return;
+  const pw = prompt('Enter the admin override password to clear ' + name + '\'s record:');
+  if (pw === null) return;
+  if (pw !== 'GW@Clear25') {
+    alert('Incorrect password. Only Ops leadership can clear inspector records.');
+    return;
+  }
+  if (!confirm('Are you sure you want to permanently clear all progress for ' + name + '?')) return;
   await deleteInspector(name);
   renderAdminDashboard();
 }
