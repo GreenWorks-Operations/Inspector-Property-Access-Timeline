@@ -1022,12 +1022,26 @@ async function checkReturningInspector() {
 
 async function loadReturningInspector() {
   const name = document.getElementById('inspectorNameInput').value.trim();
-  const existing = await loadInspectorData(name);
-  if (existing) {
-    currentInspector = existing;
-    renderChecklist();
-    showView('viewChecklist');
-    document.getElementById('headerSub').textContent = currentInspector.market;
+  try {
+    const existing = await loadInspectorData(name);
+    if (existing) {
+      currentInspector = {
+        name: existing.name || name,
+        market: existing.market || '',
+        hireDate: existing.hireDate || '',
+        stages: existing.stages || {},
+        timestamps: existing.timestamps || {},
+        ...existing
+      };
+      showView('viewChecklist');
+      document.getElementById('headerSub').textContent = currentInspector.market || '';
+      renderChecklist();
+    } else {
+      alert('Could not find your record — please try again.');
+    }
+  } catch(e) {
+    console.error('loadReturningInspector error:', e);
+    alert('Something went wrong loading your profile. Please try again.');
   }
 }
 
