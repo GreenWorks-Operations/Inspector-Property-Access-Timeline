@@ -1022,16 +1022,22 @@ async function checkReturningInspector() {
 
 async function loadReturningInspector() {
   const name = document.getElementById('inspectorNameInput').value.trim();
+  // Clear stale data immediately before async fetch
+  currentInspector = null;
+  const feePanel = document.getElementById('feePanel');
+  if (feePanel) { feePanel.style.display = 'none'; feePanel.innerHTML = ''; }
+  const profileCard = document.getElementById('profileCard');
+  if (profileCard) profileCard.style.display = 'none';
   try {
     const existing = await loadInspectorData(name);
     if (existing) {
       currentInspector = {
+        stages: {},
+        timestamps: {},
+        ...existing,
         name: existing.name || name,
         market: existing.market || '',
         hireDate: existing.hireDate || '',
-        stages: existing.stages || {},
-        timestamps: existing.timestamps || {},
-        ...existing
       };
       showView('viewChecklist');
       document.getElementById('headerSub').textContent = currentInspector.market || '';
@@ -1051,6 +1057,11 @@ async function loadInspector() {
   const hireDate = document.getElementById('hireDateInput').value;
   if (!name) { alert('Please enter your name.'); return; }
   if (!market) { alert('Please select your market.'); return; }
+  currentInspector = null;
+  const feePanel = document.getElementById('feePanel');
+  if (feePanel) { feePanel.style.display = 'none'; feePanel.innerHTML = ''; }
+  const profileCard = document.getElementById('profileCard');
+  if (profileCard) profileCard.style.display = 'none';
   let existing = await loadInspectorData(name);
   if (existing) {
     currentInspector = existing;
