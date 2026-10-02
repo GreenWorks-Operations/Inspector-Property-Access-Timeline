@@ -488,6 +488,70 @@
   width: 100%;
   display: block;
 }
+
+  /* ── Profile Card ── */
+  .profile-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
+  .profile-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; }
+  .profile-card-header h4 { font-size: 14px; color: var(--gw-green-dark); margin: 0; }
+  .profile-card-body { padding: 0 16px 16px; display: none; }
+  .profile-card-body.open { display: block; }
+  .profile-field { margin-bottom: 12px; }
+  .profile-field label { display: block; font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .profile-field input { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; }
+  .profile-field .profile-value { font-size: 13px; color: #333; padding: 8px 10px; background: #f7f5ef; border-radius: 6px; }
+  .profile-field .profile-value.empty { color: #aaa; font-style: italic; }
+  .profile-save-btn { background: var(--gw-green); color: white; border: none; border-radius: 6px; padding: 8px 18px; font-size: 13px; font-weight: 600; cursor: pointer; margin-top: 4px; }
+
+  /* ── Fee Tracker Panel ── */
+  .fee-panel { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
+  .fee-panel-header { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
+  .fee-panel-header h4 { font-size: 14px; color: var(--gw-green-dark); margin: 0 0 2px; }
+  .fee-panel-header p { font-size: 12px; color: #888; margin: 0; }
+  .fee-section { padding: 14px 16px; border-bottom: 1px solid #f7f7f7; }
+  .fee-section h5 { font-size: 13px; font-weight: 700; color: var(--gw-blue); margin: 0 0 10px; }
+  .fee-month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .fee-month-cell { background: #f7f5ef; border-radius: 8px; padding: 8px 6px; text-align: center; }
+  .fee-month-cell .month-label { font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 4px; }
+  .fee-month-cell input[type="text"] { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 4px 6px; font-size: 12px; text-align: center; font-family: inherit; margin-bottom: 4px; }
+  .fee-month-cell label { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 10px; color: #555; cursor: pointer; }
+  .fee-month-cell.submitted { background: #e8f5e9; }
+  .fee-month-cell.overdue { background: #fff0f0; }
+  .fee-month-cell.overdue .month-label { color: #c0392b; }
+  .copy-msg-banner { background: #eaf4fb; border: 1px solid #acd4f0; border-radius: 8px; padding: 10px 12px; margin-top: 12px; font-size: 12px; display: none; }
+  .copy-msg-banner.show { display: block; }
+  .copy-msg-banner strong { display: block; margin-bottom: 4px; color: var(--gw-blue); }
+  .copy-msg-banner .copy-text { background: white; border-radius: 4px; padding: 6px 8px; font-family: monospace; color: #333; margin-bottom: 6px; }
+  .copy-msg-btn { background: var(--gw-blue); color: white; border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; cursor: pointer; }
+  .fee-nachi-note { padding: 12px 16px; font-size: 12px; color: #888; font-style: italic; border-top: 1px solid #f0f0f0; }
+
+  /* ── Admin Tabs ── */
+  .admin-tabs { display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; }
+  .admin-tab { padding: 10px 22px; font-size: 13px; font-weight: 600; color: #888; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+  .admin-tab.active { color: var(--gw-green-dark); border-bottom-color: var(--gw-green); }
+  .admin-tab-panel { display: none; }
+  .admin-tab-panel.active { display: block; }
+
+  /* ── Payment Tab ── */
+  .pay-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .pay-table th { background: var(--gw-blue); color: white; padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 700; }
+  .pay-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  .pay-table tr:hover td { background: #f7f5ef; }
+  .pay-gap { color: #c0392b; font-size: 11px; font-weight: 700; }
+  .pay-expand-row { display: none; background: #f9f9f9; }
+  .pay-expand-row.show { display: table-row; }
+  .pay-month-chips { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 0; }
+  .pay-chip { font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 600; }
+  .pay-chip.paid { background: #e8f5e9; color: #2d6a4f; }
+  .pay-chip.unpaid { background: #fff0f0; color: #c0392b; }
+  .pay-chip.future { background: #f0f0f0; color: #aaa; }
+
+  /* ── Import View ── */
+  .import-wrap { max-width: 700px; margin: 0 auto; padding: 20px 16px; }
+  .import-field { margin-bottom: 14px; }
+  .import-field label { display: block; font-size: 12px; font-weight: 700; color: #666; margin-bottom: 4px; }
+  .import-field input, .import-field select { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: inherit; }
+  .import-btn { background: var(--gw-green); color: white; border: none; border-radius: 6px; padding: 10px 24px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+  .import-success { background: #e8f5e9; color: #2d6a4f; border-radius: 6px; padding: 10px 14px; font-size: 13px; margin-top: 10px; display: none; }
 </style>
 </head>
 <body>
@@ -595,9 +659,56 @@
 </div>
 
 <!-- ══ INSPECTOR CHECKLIST (single page — checklist + guide merged) ══ -->
+<div class="view" id="viewImport">
+  <div class="import-wrap">
+    <span class="back-link" onclick="showView('viewLanding')">← Back</span>
+    <h2 style="color:var(--gw-green-dark);margin:16px 0 4px;">Inspector Profile Import</h2>
+    <p style="font-size:13px;color:#888;margin-bottom:20px;">Pre-populate inspector profiles. Each entry creates or updates a record in Firebase.</p>
+    <div class="import-field"><label>Full Name (must match exactly what inspector will type)</label><input type="text" id="imp_name" placeholder="e.g. Alex Angulo"></div>
+    <div class="import-field"><label>Market</label>
+      <select id="imp_market">
+        <option value="">— Select —</option>
+        <option>Dallas (MetroTex)</option><option>Austin</option><option>San Antonio</option><option>Houston</option><option>Colorado</option><option>Fort Worth</option><option>Arlington</option><option>Plano / Collin Co.</option><option>Denton</option><option>Weatherford</option><option>Killeen</option><option>Temple</option><option>Corpus Christi</option>
+      </select>
+    </div>
+    <div class="import-field"><label>BOR Association</label><input type="text" id="imp_bor" placeholder="e.g. MetroTex Association of Realtors"></div>
+    <div class="import-field"><label>BOR Username / Login ID</label><input type="text" id="imp_user" placeholder="e.g. MTX6711 or 23246"></div>
+    <div class="import-field"><label>BOR Email</label><input type="email" id="imp_email" placeholder="e.g. alex.angulo@greenworksinspections.com"></div>
+    <div class="import-field"><label>SUPRA Serial Number</label><input type="text" id="imp_supra" placeholder="e.g. 20375379"></div>
+    <div class="import-field"><label>TREC License #</label><input type="text" id="imp_trec" placeholder="e.g. 25877"></div>
+    <div class="import-field"><label>Hire Date</label><input type="date" id="imp_hire"></div>
+    <button class="import-btn" onclick="importProfile()">💾 Save Profile</button>
+    <div class="import-success" id="importSuccess">✅ Profile saved! Inspector will see their details on next login.</div>
+  </div>
+</div>
+
 <div class="view" id="viewChecklist">
   <div class="checklist-wrap">
     <span class="back-link" onclick="showView('viewLanding')">← Back to home</span>
+
+    <!-- Profile Card -->
+    <div class="profile-card" id="profileCard" style="display:none;">
+      <div class="profile-card-header" onclick="toggleProfileCard()">
+        <h4>👤 Your Profile & Access Details</h4>
+        <span id="profileChevron">▾</span>
+      </div>
+      <div class="profile-card-body" id="profileCardBody">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div class="profile-field"><label>BOR Association</label><div class="profile-value" id="pf_bor">—</div></div>
+          <div class="profile-field"><label>BOR Username / Login ID</label><div class="profile-value" id="pf_user">—</div></div>
+          <div class="profile-field"><label>BOR Email</label><div class="profile-value" id="pf_email">—</div></div>
+          <div class="profile-field"><label>SUPRA Serial #</label><div class="profile-value" id="pf_supra">—</div></div>
+          <div class="profile-field"><label>TREC License #</label>
+            <input type="text" id="pf_trec" placeholder="Enter your TREC license #" oninput="saveProfileField('trec', this.value)">
+          </div>
+          <div class="profile-field"><label>NACHI</label><div class="profile-value">Managed by GreenWorks · Billed October</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fee Tracker Panel (shown after BOR selected) -->
+    <div class="fee-panel" id="feePanel" style="display:none;"></div>
+
     <div class="inspector-greeting">
       <div class="inspector-avatar" id="avatarInitials">JD</div>
       <div>
@@ -709,6 +820,12 @@
       <span class="back-link" onclick="showView('viewLanding')">← Back to home</span>
       <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
     </div>
+    <div class="admin-tabs">
+      <div class="admin-tab active" id="tabProgress" onclick="switchAdminTab('progress')">📋 Inspector Progress</div>
+      <div class="admin-tab" id="tabPayment" onclick="switchAdminTab('payment')">💰 Payment Tracking</div>
+    </div>
+
+    <div class="admin-tab-panel active" id="panelProgress">
     <div class="admin-stats" id="adminStats"></div>
     <div class="reminder-panel" id="reminderPanel" style="display:none">
       <h3>⚠️ Inspectors needing a nudge</h3>
@@ -749,12 +866,26 @@
         <div id="borChart"></div>
       </div>
     </div>
+    </div><!-- end panelProgress -->
+
+    <div class="admin-tab-panel" id="panelPayment">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div>
+          <h3 style="margin:0;color:var(--gw-green-dark);">Payment Tracking</h3>
+          <p style="font-size:12px;color:#888;margin:2px 0 0;">Inspector-reported BOR &amp; SUPRA fee submissions for Trina's reimbursement processing</p>
+        </div>
+        <button class="export-btn" onclick="exportPaymentCSV()">⬇ Export CSV</button>
+      </div>
+      <div id="paymentTableBody"></div>
+    </div>
+
   </div>
 </div>
 
 <div class="footer">
   <strong>GreenWorks Inspections &amp; Engineering</strong> · Internal — Property Access Setup · June 2026<br>
   Questions? Drop them in your AE channel.
+  <br><span style="font-size:10px;color:transparent;user-select:none;" onclick="accessImportTool()">·</span>
 </div>
 
 <script>
@@ -836,6 +967,7 @@ function showView(id) {
     viewChecklist: ['My Property Access Setup', ''],
     viewAdminLogin: ['Ops Dashboard', ''],
     viewAdmin: ['Ops Dashboard', 'All inspector progress'],
+    viewImport: ['Profile Import', 'Ops only — pre-populate inspector profiles'],
   };
   const t = titles[id] || ['GreenWorks',''];
   document.getElementById('headerTitle').textContent = t[0];
@@ -1171,7 +1303,7 @@ async function showBOR(key) {
     <div class="bor-detail" style="grid-column:1/-1"><div class="bor-detail-label">Counties served</div><div class="bor-detail-value">${bor.counties.join(', ')}</div></div>
   `;
   document.getElementById('borSteps').innerHTML = bor.steps.map(s => `<li>${s}</li>`).join('');
-  document.getElementById('borSupra').innerHTML = `<div class="note-box info" style="margin-top:12px"><strong>SUPRA note:</strong> ${bor.supra}</div>` +
+  document.getElementById('borSupra').innerHTML = `<div style="margin:12px 0 8px;padding:10px 14px;background:#fff0f0;border-left:3px solid #c0392b;border-radius:0 8px 8px 0;font-size:13px;color:#c0392b;font-weight:600;">⚠️ Only pay for BOR membership and SUPRA fees. Do not pay TREPAC, political funds, or any other optional fees at checkout — these will not be reimbursed.</div><div class="note-box info" style="margin-top:8px"><strong>SUPRA note:</strong> ${bor.supra}</div>` +
     `<a class="kb-link" href="${bor.kb || 'https://greenworks.tawk.help/category/field-inspector-procedures-training-resources'}" target="_blank" style="margin-top:10px;">📋 ${bor.kb ? bor.name + ' — Membership Step-by-Step' : 'GreenWorks Knowledge Base'}</a>`;
   document.getElementById('borResult').classList.add('show');
 }
@@ -1436,6 +1568,8 @@ function renderChecklist() {
   document.getElementById('allDoneBanner').classList.toggle('show', allDone);
   const notesEl = document.getElementById('additionalNotes');
   if (notesEl) notesEl.style.display = allDone ? 'block' : 'none';
+  renderProfileCard();
+  renderFeePanel();
 }
 
 function toggleStage(n) {
@@ -1740,6 +1874,287 @@ function toggleExtraSection(id) {
 }
 
 document.addEventListener('DOMContentLoaded', () => showView('viewLanding'));
+
+// ══ IMPORT TOOL ══
+function accessImportTool() {
+  const pw = prompt('Import tool password:');
+  if (pw === 'GW@Clear25') showView('viewImport');
+}
+
+async function importProfile() {
+  const name = document.getElementById('imp_name').value.trim();
+  if (!name) { alert('Name is required.'); return; }
+  const profile = {
+    name,
+    market: document.getElementById('imp_market').value,
+    hireDate: document.getElementById('imp_hire').value,
+    borChoiceName: document.getElementById('imp_bor').value,
+    borUser: document.getElementById('imp_user').value,
+    borEmail: document.getElementById('imp_email').value,
+    supraSerial: document.getElementById('imp_supra').value,
+    trecLicense: document.getElementById('imp_trec').value,
+    stages: {}, timestamps: {}
+  };
+  // Check if existing record — merge, don't overwrite progress
+  const existing = await loadInspectorData(name);
+  if (existing) {
+    Object.assign(existing, {
+      borChoiceName: profile.borChoiceName || existing.borChoiceName,
+      borUser: profile.borUser || existing.borUser,
+      borEmail: profile.borEmail || existing.borEmail,
+      supraSerial: profile.supraSerial || existing.supraSerial,
+      trecLicense: profile.trecLicense || existing.trecLicense,
+      market: profile.market || existing.market,
+      hireDate: profile.hireDate || existing.hireDate,
+    });
+    await saveInspector(existing);
+  } else {
+    await saveInspector(profile);
+  }
+  document.getElementById('importSuccess').style.display = 'block';
+  setTimeout(() => {
+    document.getElementById('importSuccess').style.display = 'none';
+    ['imp_name','imp_bor','imp_user','imp_email','imp_supra','imp_trec'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('imp_market').value = '';
+    document.getElementById('imp_hire').value = '';
+  }, 2500);
+}
+
+// ══ PROFILE CARD ══
+function toggleProfileCard() {
+  const body = document.getElementById('profileCardBody');
+  const chev = document.getElementById('profileChevron');
+  body.classList.toggle('open');
+  chev.textContent = body.classList.contains('open') ? '▴' : '▾';
+}
+
+function renderProfileCard() {
+  if (!currentInspector) return;
+  const card = document.getElementById('profileCard');
+  const hasData = currentInspector.borUser || currentInspector.supraSerial || currentInspector.trecLicense || currentInspector.borEmail;
+  card.style.display = hasData ? 'block' : 'none';
+  const set = (id, val) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = val || '—';
+    el.className = 'profile-value' + (val ? '' : ' empty');
+  };
+  set('pf_bor', currentInspector.borChoiceName);
+  set('pf_user', currentInspector.borUser);
+  set('pf_email', currentInspector.borEmail);
+  set('pf_supra', currentInspector.supraSerial);
+  const trec = document.getElementById('pf_trec');
+  if (trec) trec.value = currentInspector.trecLicense || '';
+}
+
+async function saveProfileField(field, value) {
+  if (!currentInspector) return;
+  if (field === 'trec') currentInspector.trecLicense = value;
+  await saveInspector(currentInspector);
+}
+
+// ══ FEE TRACKER ══
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const CURRENT_MONTH = new Date().getMonth(); // 0-based
+
+function renderFeePanel() {
+  if (!currentInspector || !currentInspector.borChoiceName) return;
+  const panel = document.getElementById('feePanel');
+  panel.style.display = 'block';
+
+  const fees = currentInspector.fees || {};
+  const supraIncluded = currentInspector.supraIncluded;
+
+  let html = `<div class="fee-panel-header">
+    <h4>💳 Monthly Fee Tracker</h4>
+    <p>${currentInspector.borChoiceName}</p>
+  </div>`;
+
+  // SUPRA toggle if not yet set
+  if (supraIncluded === undefined || supraIncluded === null) {
+    html += `<div style="padding:14px 16px;">
+      <p style="font-size:13px;font-weight:600;color:#444;margin-bottom:10px;">Is SUPRA included with your BOR membership?</p>
+      <div style="display:flex;gap:10px;">
+        <button class="confirm-btn" style="margin:0;flex:1;" onclick="setSupraIncluded(true)">✓ Yes, it's included</button>
+        <button class="confirm-btn gold" style="margin:0;flex:1;" onclick="setSupraIncluded(false)">No, I pay separately</button>
+      </div>
+    </div>`;
+    panel.innerHTML = html;
+    return;
+  }
+
+  // Build trackers
+  const trackers = supraIncluded
+    ? [{ key: 'bor_supra', label: 'BOR + SUPRA (Combined)' }]
+    : [{ key: 'bor', label: 'BOR Dues' }, { key: 'supra', label: 'SUPRA Dues' }];
+
+  trackers.forEach(tracker => {
+    html += `<div class="fee-section">
+      <h5>${tracker.label}</h5>
+      <div class="fee-month-grid">`;
+
+    MONTHS.forEach((month, idx) => {
+      const entry = (fees[tracker.key] || {})[idx] || {};
+      const isSubmitted = entry.submitted || false;
+      const amount = entry.amount || '';
+      const isPast = idx < CURRENT_MONTH;
+      const isCurrent = idx === CURRENT_MONTH;
+      const isOverdue = isPast && !isSubmitted && amount;
+      const cellClass = isSubmitted ? 'submitted' : (isOverdue ? 'overdue' : '');
+      html += `<div class="fee-month-cell ${cellClass}">
+        <div class="month-label">${month}</div>
+        <input type="text" placeholder="$0.00" value="${amount}" 
+          onchange="saveFeeEntry('${tracker.key}', ${idx}, 'amount', this.value)">
+        <label>
+          <input type="checkbox" ${isSubmitted ? 'checked' : ''} 
+            onchange="toggleFeeSubmit('${tracker.key}', ${idx}, this.checked)">
+          submitted
+        </label>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  // NACHI note
+  html += `<div class="fee-nachi-note">📋 NACHI dues ($100/yr) are handled by GreenWorks — billed company-wide each October. Nothing to track here.</div>`;
+
+  // Copy-paste message banner
+  html += `<div class="copy-msg-banner" id="copyMsgBanner">
+    <strong>📋 Copy this into your AE channel:</strong>
+    <div class="copy-text" id="copyMsgText"></div>
+    <button class="copy-msg-btn" onclick="copyPayrollMsg()">Copy</button>
+  </div>`;
+
+  panel.innerHTML = html;
+}
+
+async function setSupraIncluded(val) {
+  currentInspector.supraIncluded = val;
+  await saveInspector(currentInspector);
+  renderFeePanel();
+}
+
+async function saveFeeEntry(trackerKey, monthIdx, field, value) {
+  if (!currentInspector.fees) currentInspector.fees = {};
+  if (!currentInspector.fees[trackerKey]) currentInspector.fees[trackerKey] = {};
+  if (!currentInspector.fees[trackerKey][monthIdx]) currentInspector.fees[trackerKey][monthIdx] = {};
+  currentInspector.fees[trackerKey][monthIdx][field] = value;
+  await saveInspector(currentInspector);
+}
+
+async function toggleFeeSubmit(trackerKey, monthIdx, checked) {
+  await saveFeeEntry(trackerKey, monthIdx, 'submitted', checked);
+  if (checked) {
+    const entry = ((currentInspector.fees || {})[trackerKey] || {})[monthIdx] || {};
+    const amount = entry.amount || '?';
+    const msg = `Fee Receipt — ${currentInspector.name} — ${currentInspector.market} — ${MONTHS[monthIdx]} — ${amount}`;
+    document.getElementById('copyMsgText').textContent = msg;
+    document.getElementById('copyMsgBanner').classList.add('show');
+  } else {
+    document.getElementById('copyMsgBanner').classList.remove('show');
+  }
+  renderFeePanel();
+}
+
+function copyPayrollMsg() {
+  const text = document.getElementById('copyMsgText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-msg-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
+// ══ ADMIN TAB SWITCH ══
+function switchAdminTab(tab) {
+  document.getElementById('panelProgress').classList.toggle('active', tab === 'progress');
+  document.getElementById('panelPayment').classList.toggle('active', tab === 'payment');
+  document.getElementById('tabProgress').classList.toggle('active', tab === 'progress');
+  document.getElementById('tabPayment').classList.toggle('active', tab === 'payment');
+  if (tab === 'payment') renderPaymentTab();
+}
+
+// ══ PAYMENT TAB ══
+async function renderPaymentTab() {
+  const body = document.getElementById('paymentTableBody');
+  body.innerHTML = '<div style="color:#aaa;font-size:13px;padding:8px;">Loading...</div>';
+  const all = await getAllInspectors();
+
+  if (all.length === 0) {
+    body.innerHTML = '<div style="color:#aaa;font-size:13px;padding:16px;text-align:center;">No inspector data yet.</div>';
+    return;
+  }
+
+  const rows = all.map((i, idx) => {
+    const fees = i.fees || {};
+    const supraIncluded = i.supraIncluded;
+    const trackers = supraIncluded
+      ? [{ key: 'bor_supra', label: 'BOR+SUPRA' }]
+      : [{ key: 'bor', label: 'BOR' }, { key: 'supra', label: 'SUPRA' }];
+
+    // Calculate YTD total and find gaps
+    let ytd = 0;
+    let gaps = [];
+    trackers.forEach(t => {
+      for (let m = 0; m <= CURRENT_MONTH; m++) {
+        const entry = (fees[t.key] || {})[m] || {};
+        if (entry.submitted && entry.amount) {
+          ytd += parseFloat(entry.amount.replace(/[^0-9.]/g,'')) || 0;
+        } else if (m < CURRENT_MONTH) {
+          gaps.push(MONTHS[m]);
+        }
+      }
+    });
+
+    const rowId = 'payrow_' + idx;
+
+    // Month chips for expanded view
+    const chipRows = trackers.map(t => {
+      const chips = MONTHS.map((month, m) => {
+        const entry = (fees[t.key] || {})[m] || {};
+        const cls = m > CURRENT_MONTH ? 'future' : entry.submitted ? 'paid' : 'unpaid';
+        const label = entry.amount ? `${month} $${entry.amount}` : month;
+        return `<span class="pay-chip ${cls}">${label}</span>`;
+      }).join('');
+      return `<div style="margin-bottom:6px;"><strong style="font-size:11px;color:#666;">${t.label}:</strong><div class="pay-month-chips">${chips}</div></div>`;
+    }).join('');
+
+    return `<tr style="cursor:pointer;" onclick="document.getElementById('${rowId}').classList.toggle('show')">
+      <td><strong>${i.name}</strong><br><span style="font-size:11px;color:#888;">${i.market || '—'}</span></td>
+      <td style="font-size:12px;">${i.borChoiceName || '—'}</td>
+      <td style="font-size:12px;">${supraIncluded === true ? 'Included' : supraIncluded === false ? 'Separate' : '—'}</td>
+      <td style="font-size:12px;font-weight:700;color:var(--gw-green-dark);">$${ytd.toFixed(2)}</td>
+      <td>${gaps.length > 0 ? `<span class="pay-gap">⚠️ ${gaps.join(', ')}</span>` : '<span style="color:#2d6a4f;font-size:12px;">✓ Current</span>'}</td>
+    </tr>
+    <tr class="pay-expand-row" id="${rowId}">
+      <td colspan="5" style="padding:12px 16px;">${chipRows}</td>
+    </tr>`;
+  }).join('');
+
+  body.innerHTML = `<table class="pay-table">
+    <thead><tr><th>Inspector</th><th>BOR</th><th>SUPRA</th><th>YTD Submitted</th><th>Gaps</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+async function exportPaymentCSV() {
+  const all = await getAllInspectors();
+  const headers = ['Name','Market','BOR','SUPRA Included','YTD Total'].concat(MONTHS.map(m => m + ' Amount'), MONTHS.map(m => m + ' Submitted'));
+  const rows = all.map(i => {
+    const fees = i.fees || {};
+    const trackerKey = i.supraIncluded ? 'bor_supra' : 'bor';
+    let ytd = 0;
+    const amounts = MONTHS.map((_, m) => { const e = (fees[trackerKey] || {})[m] || {}; return e.amount || ''; });
+    const submitted = MONTHS.map((_, m) => { const e = (fees[trackerKey] || {})[m] || {}; if (e.submitted) { ytd += parseFloat((e.amount||'0').replace(/[^0-9.]/g,''))||0; return 'Yes'; } return ''; });
+    return [i.name, i.market||'', i.borChoiceName||'', i.supraIncluded===true?'Yes':i.supraIncluded===false?'No':'Unknown', '$'+ytd.toFixed(2), ...amounts, ...submitted];
+  });
+  const csv = [headers, ...rows].map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'GW_Payment_Tracking_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
 </script>
 </body>
 </html>
