@@ -515,8 +515,7 @@
   .fee-month-cell input[type="text"] { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 4px 6px; font-size: 12px; text-align: center; font-family: inherit; margin-bottom: 4px; }
   .fee-month-cell label { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 10px; color: #555; cursor: pointer; }
   .fee-month-cell.submitted { background: #e8f5e9; }
-  .fee-month-cell.overdue { background: #fff0f0; }
-  .fee-month-cell.overdue .month-label { color: #c0392b; }
+  .fee-freq-label { display:inline-block;margin-left:8px;font-size:11px;color:#888;font-weight:400;background:#f0f0f0;border-radius:10px;padding:2px 8px; }
   .copy-msg-banner { background: #eaf4fb; border: 1px solid #acd4f0; border-radius: 8px; padding: 10px 12px; margin-top: 12px; font-size: 12px; display: none; }
   .copy-msg-banner.show { display: block; }
   .copy-msg-banner strong { display: block; margin-bottom: 4px; color: var(--gw-blue); }
@@ -532,18 +531,19 @@
   .admin-tab-panel.active { display: block; }
 
   /* ── Payment Tab ── */
-  .pay-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .pay-table th { background: var(--gw-blue); color: white; padding: 8px 12px; text-align: left; font-size: 11px; font-weight: 700; }
-  .pay-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
-  .pay-table tr:hover td { background: #f7f5ef; }
-  .pay-gap { color: #c0392b; font-size: 11px; font-weight: 700; }
-  .pay-expand-row { display: none; background: #f9f9f9; }
-  .pay-expand-row.show { display: table-row; }
-  .pay-month-chips { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 0; }
-  .pay-chip { font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 600; }
-  .pay-chip.paid { background: #e8f5e9; color: #2d6a4f; }
-  .pay-chip.unpaid { background: #fff0f0; color: #c0392b; }
-  .pay-chip.future { background: #f0f0f0; color: #aaa; }
+  .pay-wrap { overflow-x: auto; }
+  .pay-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1200px; }
+  .pay-table th { background: var(--gw-blue); color: white; padding: 7px 8px; text-align: center; font-size: 10px; font-weight: 700; white-space: nowrap; position: sticky; top: 0; }
+  .pay-table th.th-left { text-align: left; }
+  .pay-table td { padding: 6px 8px; border: 1px solid #e8e8e8; vertical-align: middle; text-align: center; font-size: 12px; }
+  .pay-table td.td-left { text-align: left; }
+  .pay-table tr:nth-child(even) td { background: #f9f9f9; }
+  .pay-table tr:hover td { background: #f0f6f2; }
+  .pay-cell-amt { font-weight: 600; color: #333; }
+  .pay-cell-reimb { font-size: 10px; color: #2d6a4f; }
+  .pay-cell-empty { color: #ddd; }
+  .pay-reimb-check { cursor: pointer; accent-color: var(--gw-green); width: 14px; height: 14px; }
+  .pay-ytd { font-weight: 700; color: var(--gw-green-dark); }
 
   /* ── Import View ── */
   .import-wrap { max-width: 700px; margin: 0 auto; padding: 20px 16px; }
@@ -627,7 +627,7 @@
       <p>This process is separate from your BambooHR onboarding. Complete your required stages to unlock property access for inspections.</p>
       <div class="field-group">
         <label>Your full name</label>
-        <input type="text" id="inspectorNameInput" placeholder="e.g. John Smith" autocomplete="off" oninput="checkReturningInspector()">
+        <input type="text" id="inspectorNameInput" placeholder="e.g. John Smith" autocomplete="off" oninput="debounceCheck()">
       </div>
       <div id="returningBanner" style="display:none;background:var(--gw-green-light);border:1.5px solid var(--gw-green);border-radius:8px;padding:14px 16px;margin-bottom:4px;">
         <div style="font-size:14px;font-weight:700;color:var(--gw-green-dark);margin-bottom:4px;">👋 Welcome back, <span id="returningName"></span>!</div>
@@ -993,6 +993,20 @@ function checkAdminPass() {
 
 // ══ INSPECTOR LOAD ══
 let currentInspector = null;
+
+let _checkTimer = null;
+function debounceCheck() {
+  clearTimeout(_checkTimer);
+  const name = document.getElementById('inspectorNameInput').value.trim();
+  // Hide banner immediately if name too short
+  if (name.length < 3) {
+    document.getElementById('returningBanner').style.display = 'none';
+    document.getElementById('newInspectorFields').style.display = 'block';
+    document.getElementById('newInspectorSubmit').style.display = 'block';
+    return;
+  }
+  _checkTimer = setTimeout(() => checkReturningInspector(), 500);
+}
 
 async function checkReturningInspector() {
   const name = document.getElementById('inspectorNameInput').value.trim();
@@ -2008,30 +2022,35 @@ function renderFeePanel() {
     return;
   }
 
-  // Build trackers
   const trackers = supraIncluded
     ? [{ key: 'bor_supra', label: 'BOR + SUPRA (Combined)' }]
     : [{ key: 'bor', label: 'BOR Dues' }, { key: 'supra', label: 'SUPRA Dues' }];
 
+  const freqOptions = ['Monthly', 'Quarterly', 'Annual'];
+
   trackers.forEach(tracker => {
+    const freq = (currentInspector.feeFreq || {})[tracker.key] || '';
+    const freqLabel = freq ? `<span class="fee-freq-label">${freq}</span>` : '';
     html += `<div class="fee-section">
-      <h5>${tracker.label}</h5>
+      <h5>${tracker.label}${freqLabel}
+        ${!freq ? `<select style="margin-left:8px;font-size:11px;border-radius:6px;border:1px solid #ddd;padding:2px 6px;" onchange="saveFeeFreq('${tracker.key}',this.value)">
+          <option value="">— Billing cycle —</option>
+          ${freqOptions.map(f => `<option value="${f}">${f}</option>`).join('')}
+        </select>` : ''}
+      </h5>
       <div class="fee-month-grid">`;
 
     MONTHS.forEach((month, idx) => {
       const entry = (fees[tracker.key] || {})[idx] || {};
       const isSubmitted = entry.submitted || false;
       const amount = entry.amount || '';
-      const isPast = idx < CURRENT_MONTH;
-      const isCurrent = idx === CURRENT_MONTH;
-      const isOverdue = isPast && !isSubmitted && amount;
-      const cellClass = isSubmitted ? 'submitted' : (isOverdue ? 'overdue' : '');
+      const cellClass = isSubmitted ? 'submitted' : '';
       html += `<div class="fee-month-cell ${cellClass}">
         <div class="month-label">${month}</div>
-        <input type="text" placeholder="$0.00" value="${amount}" 
+        <input type="text" placeholder="$0.00" value="${amount}"
           onchange="saveFeeEntry('${tracker.key}', ${idx}, 'amount', this.value)">
         <label>
-          <input type="checkbox" ${isSubmitted ? 'checked' : ''} 
+          <input type="checkbox" ${isSubmitted ? 'checked' : ''}
             onchange="toggleFeeSubmit('${tracker.key}', ${idx}, this.checked)">
           submitted
         </label>
@@ -2041,10 +2060,7 @@ function renderFeePanel() {
     html += `</div></div>`;
   });
 
-  // NACHI note
   html += `<div class="fee-nachi-note">📋 NACHI dues ($100/yr) are handled by GreenWorks — billed company-wide each October. Nothing to track here.</div>`;
-
-  // Copy-paste message banner
   html += `<div class="copy-msg-banner" id="copyMsgBanner">
     <strong>📋 Copy this into your AE channel:</strong>
     <div class="copy-text" id="copyMsgText"></div>
@@ -2056,6 +2072,13 @@ function renderFeePanel() {
 
 async function setSupraIncluded(val) {
   currentInspector.supraIncluded = val;
+  await saveInspector(currentInspector);
+  renderFeePanel();
+}
+
+async function saveFeeFreq(trackerKey, freq) {
+  if (!currentInspector.feeFreq) currentInspector.feeFreq = {};
+  currentInspector.feeFreq[trackerKey] = freq;
   await saveInspector(currentInspector);
   renderFeePanel();
 }
@@ -2111,73 +2134,99 @@ async function renderPaymentTab() {
     return;
   }
 
-  const rows = all.map((i, idx) => {
+  const monthHeaders = MONTHS.map(m => `<th>${m}</th>`).join('');
+
+  const rows = all.map((i, inspIdx) => {
     const fees = i.fees || {};
     const supraIncluded = i.supraIncluded;
     const trackers = supraIncluded
       ? [{ key: 'bor_supra', label: 'BOR+SUPRA' }]
       : [{ key: 'bor', label: 'BOR' }, { key: 'supra', label: 'SUPRA' }];
 
-    // Calculate YTD total and find gaps
     let ytd = 0;
-    let gaps = [];
-    trackers.forEach(t => {
-      for (let m = 0; m <= CURRENT_MONTH; m++) {
-        const entry = (fees[t.key] || {})[m] || {};
-        if (entry.submitted && entry.amount) {
-          ytd += parseFloat(entry.amount.replace(/[^0-9.]/g,'')) || 0;
-        } else if (m < CURRENT_MONTH) {
-          gaps.push(MONTHS[m]);
-        }
-      }
-    });
 
-    const rowId = 'payrow_' + idx;
-
-    // Month chips for expanded view
-    const chipRows = trackers.map(t => {
-      const chips = MONTHS.map((month, m) => {
+    // One row per tracker (BOR / SUPRA or combined)
+    return trackers.map((t, tIdx) => {
+      const freq = (i.feeFreq || {})[t.key] || '';
+      const monthCells = MONTHS.map((_, m) => {
         const entry = (fees[t.key] || {})[m] || {};
-        const cls = m > CURRENT_MONTH ? 'future' : entry.submitted ? 'paid' : 'unpaid';
-        const label = entry.amount ? `${month} $${entry.amount}` : month;
-        return `<span class="pay-chip ${cls}">${label}</span>`;
+        const amt = entry.amount ? parseFloat(entry.amount.replace(/[^0-9.]/g,'')) || 0 : 0;
+        const submitted = entry.submitted;
+        const reimbursed = entry.reimbursed;
+        if (submitted && amt) ytd += amt;
+
+        if (!entry.amount) return `<td class="pay-cell-empty">—</td>`;
+
+        const reimbColor = reimbursed ? 'color:#2d6a4f;' : 'color:#c6a047;';
+        const reimbTip = reimbursed ? 'Reimbursed ✓' : 'Mark reimbursed';
+        return `<td>
+          <div class="pay-cell-amt">$${amt.toFixed(2)}</div>
+          ${submitted ? `<div><input type="checkbox" class="pay-reimb-check" title="${reimbTip}" ${reimbursed ? 'checked' : ''}
+            onchange="toggleReimbursed('${storageKey(i.name)}','${t.key}',${m},this.checked,'${i.name}')">
+            <span style="font-size:9px;${reimbColor}">${reimbursed ? '✓ reimbursed' : 'reimburse'}</span></div>` : ''}
+        </td>`;
       }).join('');
-      return `<div style="margin-bottom:6px;"><strong style="font-size:11px;color:#666;">${t.label}:</strong><div class="pay-month-chips">${chips}</div></div>`;
-    }).join('');
 
-    return `<tr style="cursor:pointer;" onclick="document.getElementById('${rowId}').classList.toggle('show')">
-      <td><strong>${i.name}</strong><br><span style="font-size:11px;color:#888;">${i.market || '—'}</span></td>
-      <td style="font-size:12px;">${i.borChoiceName || '—'}</td>
-      <td style="font-size:12px;">${supraIncluded === true ? 'Included' : supraIncluded === false ? 'Separate' : '—'}</td>
-      <td style="font-size:12px;font-weight:700;color:var(--gw-green-dark);">$${ytd.toFixed(2)}</td>
-      <td>${gaps.length > 0 ? `<span class="pay-gap">⚠️ ${gaps.join(', ')}</span>` : '<span style="color:#2d6a4f;font-size:12px;">✓ Current</span>'}</td>
-    </tr>
-    <tr class="pay-expand-row" id="${rowId}">
-      <td colspan="5" style="padding:12px 16px;">${chipRows}</td>
-    </tr>`;
+      const isFirst = tIdx === 0;
+      const nameCell = isFirst
+        ? `<td class="td-left" rowspan="${trackers.length}" style="border-right:2px solid #d0e4d8;"><strong>${i.name}</strong><br><span style="font-size:10px;color:#888;">${i.market||'—'}</span></td>`
+        : '';
+
+      return `<tr>
+        ${nameCell}
+        <td class="td-left" style="font-size:11px;">${t.label}${freq ? ` <span class="fee-freq-label">${freq}</span>` : ''}</td>
+        ${monthCells}
+        <td class="pay-ytd">$${ytd.toFixed(2)}</td>
+      </tr>`;
+    }).join('');
   }).join('');
 
-  body.innerHTML = `<table class="pay-table">
-    <thead><tr><th>Inspector</th><th>BOR</th><th>SUPRA</th><th>YTD Submitted</th><th>Gaps</th></tr></thead>
+  body.innerHTML = `<div class="pay-wrap"><table class="pay-table">
+    <thead><tr>
+      <th class="th-left" style="min-width:140px;">Inspector</th>
+      <th class="th-left" style="min-width:100px;">Type</th>
+      ${monthHeaders}
+      <th>YTD Total</th>
+    </tr></thead>
     <tbody>${rows}</tbody>
-  </table>`;
+  </table></div>`;
+}
+
+async function toggleReimbursed(key, trackerKey, monthIdx, checked, inspName) {
+  try {
+    const data = await fbGet('inspectors/' + key);
+    if (!data) return;
+    if (!data.fees) data.fees = {};
+    if (!data.fees[trackerKey]) data.fees[trackerKey] = {};
+    if (!data.fees[trackerKey][monthIdx]) data.fees[trackerKey][monthIdx] = {};
+    data.fees[trackerKey][monthIdx].reimbursed = checked;
+    await fbSet('inspectors/' + key, data);
+    renderPaymentTab();
+  } catch(e) { console.error('toggleReimbursed error:', e); }
 }
 
 async function exportPaymentCSV() {
   const all = await getAllInspectors();
-  const headers = ['Name','Market','BOR','SUPRA Included','YTD Total'].concat(MONTHS.map(m => m + ' Amount'), MONTHS.map(m => m + ' Submitted'));
-  const rows = all.map(i => {
+  const monthAmt = MONTHS.map(m => m + ' $');
+  const monthSub = MONTHS.map(m => m + ' Submitted');
+  const monthReimb = MONTHS.map(m => m + ' Reimbursed');
+  const headers = ['Name','Market','BOR','Type','Billing Cycle','YTD Submitted', ...monthAmt, ...monthSub, ...monthReimb];
+  const rows = [];
+  all.forEach(i => {
     const fees = i.fees || {};
-    const trackerKey = i.supraIncluded ? 'bor_supra' : 'bor';
-    let ytd = 0;
-    const amounts = MONTHS.map((_, m) => { const e = (fees[trackerKey] || {})[m] || {}; return e.amount || ''; });
-    const submitted = MONTHS.map((_, m) => { const e = (fees[trackerKey] || {})[m] || {}; if (e.submitted) { ytd += parseFloat((e.amount||'0').replace(/[^0-9.]/g,''))||0; return 'Yes'; } return ''; });
-    return [i.name, i.market||'', i.borChoiceName||'', i.supraIncluded===true?'Yes':i.supraIncluded===false?'No':'Unknown', '$'+ytd.toFixed(2), ...amounts, ...submitted];
+    const trackers = i.supraIncluded ? [{key:'bor_supra',label:'BOR+SUPRA'}] : [{key:'bor',label:'BOR'},{key:'supra',label:'SUPRA'}];
+    trackers.forEach(t => {
+      let ytd = 0;
+      const amts = MONTHS.map((_,m) => { const e=(fees[t.key]||{})[m]||{}; const v=parseFloat((e.amount||'0').replace(/[^0-9.]/g,''))||0; if(e.submitted)ytd+=v; return e.amount||''; });
+      const subs = MONTHS.map((_,m) => { const e=(fees[t.key]||{})[m]||{}; return e.submitted?'Yes':''; });
+      const reimbs = MONTHS.map((_,m) => { const e=(fees[t.key]||{})[m]||{}; return e.reimbursed?'Yes':''; });
+      rows.push([i.name, i.market||'', i.borChoiceName||'', t.label, (i.feeFreq||{})[t.key]||'', '$'+ytd.toFixed(2), ...amts, ...subs, ...reimbs]);
+    });
   });
-  const csv = [headers, ...rows].map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const csv = [headers,...rows].map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
   const blob = new Blob([csv], {type:'text/csv'});
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'GW_Payment_Tracking_'+new Date().toISOString().slice(0,10)+'.csv';
+  const a = document.createElement('a'); a.href=url; a.download='GW_Payment_Tracking_'+new Date().toISOString().slice(0,10)+'.csv';
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 </script>
