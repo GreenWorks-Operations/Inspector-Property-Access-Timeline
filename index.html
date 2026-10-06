@@ -1021,7 +1021,13 @@ async function checkReturningInspector() {
     return;
   }
 
-  const existing = await loadInspectorData(name);
+  let existing = null;
+  try {
+    existing = await loadInspectorData(name);
+  } catch(e) {
+    console.error('checkReturningInspector fetch error:', e);
+  }
+  console.log('checkReturning:', name, '-> key:', storageKey(name), '-> found:', !!existing);
   if (existing) {
     document.getElementById('returningName').textContent = name.split(' ')[0];
     returning.style.display = 'block';
@@ -1089,6 +1095,87 @@ async function loadInspector() {
 }
 
 // ══ BOR DATA ══
+// ══ BOR FEE INFO ══
+const borFeeInfo = {
+  dallas: {
+    fees: [
+      {label: 'MetroTex Local Dues', amount: '$117', cycle: 'Annual · due Dec 31'},
+      {label: 'MetroTex Building + Tech Assessments', amount: '$10', cycle: 'Annual · due Dec 31'},
+      {label: 'NAR Dues + Assessments', amount: '$201', cycle: 'Annual · due Dec 31'},
+      {label: 'Texas REALTORS® Dues + Assessments', amount: '$157', cycle: 'Annual · due Dec 31'},
+      {label: 'SUPRA E-Key (MetroTex Key Services)', amount: '$142', cycle: 'Quarterly'},
+    ],
+    note: '⚠️ Do not pay TREPAC — it is voluntary and will not be reimbursed.',
+    payUrl: 'https://portal.metrotex.com', payLabel: 'Pay at portal.metrotex.com → Billing → My Invoices',
+  },
+  austin: {
+    fees: [
+      {label: 'ABOR Affiliate Membership', amount: '$55', cycle: 'Annual · due Dec 31'},
+      {label: 'SUPRA eKEY Subscription', amount: '$142.89', cycle: '6-month · due Mar 31 + Sep 30'},
+    ],
+    note: '⚠️ Do not pay TREPAC or NAR/TR political funds — voluntary and not reimbursed.',
+    payUrl: 'https://portal.abor.com', payLabel: 'Pay at Portal.ABoR.com',
+  },
+  houston: {
+    fees: [
+      {label: 'HAR Affiliate Dues', amount: '$132', cycle: 'Annual · due Dec 1 (hard deadline Dec 31)'},
+      {label: 'New member application fee (first year only)', amount: '$25', cycle: 'One-time'},
+    ],
+    note: '⚠️ Do not pay TREPAC — voluntary and not reimbursed.',
+    payUrl: 'https://cms.har.com/dues/', payLabel: 'Pay at cms.har.com/dues using your HAR login',
+  },
+  fortworth: {
+    fees: [
+      {label: 'TAR Affiliate Dues', amount: '$117', cycle: 'Annual'},
+      {label: 'Late fee if missed', amount: '$30', cycle: 'Avoidable — pay on time'},
+    ],
+    note: 'Pay on time — late fees are not reimbursed.',
+    payUrl: 'https://gfwar.org', payLabel: 'Pay at gfwar.org',
+  },
+  weatherford: {
+    fees: [
+      {label: 'BOR Dues', amount: '$62.35', cycle: 'Quarterly'},
+      {label: 'SUPRA Dues', amount: '$252', cycle: 'Quarterly'},
+    ],
+    note: '⚠️ Do not pay TREPAC — voluntary and not reimbursed.',
+    payUrl: 'https://gmwar.org', payLabel: 'Pay online at gmwar.org',
+  },
+  arlington: { phone: '817-701-2490' },
+  plano: { phone: '972-618-3800' },
+  denton: { phone: '940-387-8212' },
+  sanantonio: { phone: '210-593-1200' },
+  corpuschristi: { phone: '361-991-8221' },
+  killeen: { phone: '254-634-4412' },
+  temple: { phone: '254-773-0410' },
+};
+
+function buildBorFeeHtml(key) {
+  const info = borFeeInfo[key];
+  if (!info) return '';
+  let html = '<div style="margin-top:14px;border-top:1px solid #e5e0d3;padding-top:12px;">';
+  html += '<p style="font-size:12px;font-weight:700;color:var(--gw-green-dark);margin:0 0 8px;">💰 Fee Details — all reimbursed by GreenWorks</p>';
+  if (info.fees && info.fees.length) {
+    html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:8px;">';
+    info.fees.forEach(f => {
+      html += `<tr><td style="padding:3px 0;color:#333;">${f.label}</td><td style="text-align:right;font-weight:700;color:var(--gw-green-dark);white-space:nowrap;padding-left:8px;">${f.amount}</td></tr>`;
+      html += `<tr><td colspan="2" style="font-size:10px;color:#999;padding-bottom:5px;">${f.cycle}</td></tr>`;
+    });
+    html += '</table>';
+  }
+  if (info.phone && !info.fees) {
+    html += `<p style="font-size:12px;color:#666;margin:0 0 4px;">Contact your BOR for current fee schedule: <strong>${info.phone}</strong></p>`;
+  }
+  if (info.note) {
+    const isWarning = info.note.startsWith('⚠️');
+    html += `<p style="font-size:11px;color:${isWarning ? '#c0392b' : '#888'};margin:4px 0;">${info.note}</p>`;
+  }
+  if (info.payUrl) {
+    html += `<a href="${info.payUrl}" target="_blank" class="kb-link" style="margin-top:8px;font-size:11px;">💳 ${info.payLabel}</a>`;
+  }
+  html += '</div>';
+  return html;
+}
+
 const borData = {
   colorado: {
     name: "Colorado — Unregulated State",
@@ -1342,7 +1429,8 @@ async function showBOR(key) {
     <div class="bor-detail" style="grid-column:1/-1"><div class="bor-detail-label">Counties served</div><div class="bor-detail-value">${bor.counties.join(', ')}</div></div>
   `;
   document.getElementById('borSteps').innerHTML = bor.steps.map(s => `<li>${s}</li>`).join('');
-  document.getElementById('borSupra').innerHTML = `<div style="margin:12px 0 8px;padding:10px 14px;background:#fff0f0;border-left:3px solid #c0392b;border-radius:0 8px 8px 0;font-size:13px;color:#c0392b;font-weight:600;">⚠️ Only pay for BOR membership and SUPRA fees. Do not pay TREPAC, political funds, or any other optional fees at checkout — these will not be reimbursed.</div><div class="note-box info" style="margin-top:8px"><strong>SUPRA note:</strong> ${bor.supra}</div>` +
+  const feeHtml = borFeeInfo[key] ? buildBorFeeHtml(key) : '';
+  document.getElementById('borSupra').innerHTML = `<div style="margin:12px 0 8px;padding:10px 14px;background:#fff0f0;border-left:3px solid #c0392b;border-radius:0 8px 8px 0;font-size:13px;color:#c0392b;font-weight:600;">⚠️ Only pay for BOR membership and SUPRA fees. Do not pay TREPAC, political funds, or any other optional fees at checkout — these will not be reimbursed.</div><div class="note-box info" style="margin-top:8px"><strong>SUPRA note:</strong> ${bor.supra}</div>${feeHtml}` +
     `<a class="kb-link" href="${bor.kb || 'https://greenworks.tawk.help/category/field-inspector-procedures-training-resources'}" target="_blank" style="margin-top:10px;">📋 ${bor.kb ? bor.name + ' — Membership Step-by-Step' : 'GreenWorks Knowledge Base'}</a>`;
   document.getElementById('borResult').classList.add('show');
 }
