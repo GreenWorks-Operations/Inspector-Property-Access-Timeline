@@ -531,12 +531,12 @@
   .admin-tab-panel.active { display: block; }
 
   /* ── Payment Tab ── */
-  .pay-wrap { overflow-x: auto; }
-  .pay-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1200px; }
-  .pay-table th { background: var(--gw-blue); color: white; padding: 7px 8px; text-align: center; font-size: 10px; font-weight: 700; white-space: nowrap; position: sticky; top: 0; }
+  .pay-wrap { width: 100%; }
+  .pay-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
+  .pay-table th { background: var(--gw-blue); color: white; padding: 5px 3px; text-align: center; font-size: 9px; font-weight: 700; white-space: nowrap; }
   .pay-table th.th-left { text-align: left; }
-  .pay-table td { padding: 6px 8px; border: 1px solid #e8e8e8; vertical-align: middle; text-align: center; font-size: 12px; }
-  .pay-table td.td-left { text-align: left; }
+  .pay-table td { padding: 4px 3px; border: 1px solid #e8e8e8; vertical-align: middle; text-align: center; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pay-table td.td-left { text-align: left; white-space: normal; }
   .pay-table tr:nth-child(even) td { background: #f9f9f9; }
   .pay-table tr:hover td { background: #f0f6f2; }
   .pay-cell-amt { font-weight: 600; color: #333; }
@@ -872,7 +872,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
         <div>
           <h3 style="margin:0;color:var(--gw-green-dark);">Payment Tracking</h3>
-          <p style="font-size:12px;color:#888;margin:2px 0 0;">Inspector-reported BOR &amp; SUPRA fee submissions for Trina's reimbursement processing</p>
+          <p style="font-size:12px;color:#888;margin:2px 0 0;">Inspector-reported BOR &amp; SUPRA fee submissions for reimbursement processing</p>
         </div>
         <button class="export-btn" onclick="exportPaymentCSV()">⬇ Export CSV</button>
       </div>
@@ -2270,11 +2270,12 @@ async function renderPaymentTab() {
   }).join('');
 
   body.innerHTML = `<div class="pay-wrap"><table class="pay-table">
+    <colgroup><col style="width:18%"><col style="width:8%">${'<col style="width:5.5%">'.repeat(12)}<col style="width:7%"></colgroup>
     <thead><tr>
-      <th class="th-left" style="min-width:140px;">Inspector</th>
-      <th class="th-left" style="min-width:100px;">Type</th>
+      <th class="th-left">Inspector</th>
+      <th class="th-left">Type</th>
       ${monthHeaders}
-      <th>YTD Total</th>
+      <th>YTD</th>
     </tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
