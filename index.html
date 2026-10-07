@@ -693,16 +693,7 @@
         <span id="profileChevron">▾</span>
       </div>
       <div class="profile-card-body" id="profileCardBody">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-          <div class="profile-field"><label>BOR Association</label><div class="profile-value" id="pf_bor">—</div></div>
-          <div class="profile-field"><label>BOR Username / Login ID</label><div class="profile-value" id="pf_user">—</div></div>
-          <div class="profile-field"><label>BOR Email</label><div class="profile-value" id="pf_email">—</div></div>
-          <div class="profile-field"><label>SUPRA Serial #</label><div class="profile-value" id="pf_supra">—</div></div>
-          <div class="profile-field"><label>TREC License #</label>
-            <input type="text" id="pf_trec" placeholder="Enter your TREC license #" oninput="saveProfileField('trec', this.value)">
-          </div>
-          <div class="profile-field"><label>NACHI</label><div class="profile-value">Managed by GreenWorks · Billed October</div></div>
-        </div>
+        <div id="profileCardContent"></div>
       </div>
     </div>
 
@@ -2058,25 +2049,98 @@ function toggleProfileCard() {
 function renderProfileCard() {
   if (!currentInspector) return;
   const card = document.getElementById('profileCard');
-  const hasData = currentInspector.borUser || currentInspector.supraSerial || currentInspector.trecLicense || currentInspector.borEmail;
-  card.style.display = hasData ? 'block' : 'none';
-  const set = (id, val) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.textContent = val || '—';
-    el.className = 'profile-value' + (val ? '' : ' empty');
-  };
-  set('pf_bor', currentInspector.borChoiceName);
-  set('pf_user', currentInspector.borUser);
-  set('pf_email', currentInspector.borEmail);
-  set('pf_supra', currentInspector.supraSerial);
-  const trec = document.getElementById('pf_trec');
-  if (trec) trec.value = currentInspector.trecLicense || '';
+  card.style.display = 'block';
+
+  // Ensure bors array exists — migrate legacy single fields
+  if (!currentInspector.bors || !currentInspector.bors.length) {
+    currentInspector.bors = [{
+      name: currentInspector.borChoiceName || '',
+      user: currentInspector.borUser || ''
+    }];
+  }
+
+  const content = document.getElementById('profileCardContent');
+
+  // ── BOR paired rows ──
+  let borsHtml = `<div style="margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <label style="font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px;">BOR Association & Login</label>
+      <button onclick="addBorRow()" style="background:var(--gw-green);color:white;border:none;border-radius:50%;width:20px;height:20px;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Add another BOR">+</button>
+    </div>`;
+
+  (currentInspector.bors || []).forEach((bor, idx) => {
+    borsHtml += `<div id="bor-row-${idx}" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px;">
+      <input type="text" placeholder="BOR Association" value="${bor.name || ''}"
+        style="padding:7px 9px;border:1px solid #ddd;border-radius:6px;font-size:12px;font-family:inherit;"
+        oninput="saveBorField(${idx},'name',this.value)">
+      <input type="text" placeholder="Username / Login ID" value="${bor.user || ''}"
+        style="padding:7px 9px;border:1px solid #ddd;border-radius:6px;font-size:12px;font-family:inherit;"
+        oninput="saveBorField(${idx},'user',this.value)">
+      ${idx > 0 ? `<button onclick="removeBorRow(${idx})" style="background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:0 4px;" title="Remove">×</button>` : '<span style="width:24px;"></span>'}
+    </div>`;
+  });
+  borsHtml += '</div>';
+
+  // ── Other fields ──
+  const otherHtml = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div class="profile-field">
+      <label>BOR Email</label>
+      <input type="email" placeholder="your@email.com" value="${currentInspector.borEmail || ''}"
+        oninput="saveProfileField('borEmail', this.value)">
+    </div>
+    <div class="profile-field">
+      <label>SUPRA Serial #</label>
+      <input type="text" placeholder="e.g. 20375379" value="${currentInspector.supraSerial || ''}"
+        oninput="saveProfileField('supraSerial', this.value)">
+    </div>
+    <div class="profile-field">
+      <label>TREC License #</label>
+      <input type="text" placeholder="e.g. 25877" value="${currentInspector.trecLicense || ''}"
+        oninput="saveProfileField('trecLicense', this.value)">
+    </div>
+    <div class="profile-field">
+      <label>NACHI</label>
+      <div class="profile-value">Managed by GreenWorks · Billed October</div>
+    </div>
+  </div>`;
+
+  content.innerHTML = borsHtml + otherHtml;
+}
+
+async function saveBorField(idx, field, value) {
+  if (!currentInspector) return;
+  if (!currentInspector.bors) currentInspector.bors = [{}];
+  if (!currentInspector.bors[idx]) currentInspector.bors[idx] = {};
+  currentInspector.bors[idx][field] = value;
+  // Keep legacy fields in sync for compatibility
+  if (idx === 0 && field === 'name') currentInspector.borChoiceName = value;
+  if (idx === 0 && field === 'user') currentInspector.borUser = value;
+  await saveInspector(currentInspector);
+}
+
+function addBorRow() {
+  if (!currentInspector) return;
+  if (!currentInspector.bors) currentInspector.bors = [{}];
+  currentInspector.bors.push({name: '', user: ''});
+  saveInspector(currentInspector);
+  renderProfileCard();
+  // Re-open the card body
+  const body = document.getElementById('profileCardBody');
+  if (body) body.classList.add('open');
+}
+
+function removeBorRow(idx) {
+  if (!currentInspector || !currentInspector.bors) return;
+  currentInspector.bors.splice(idx, 1);
+  saveInspector(currentInspector);
+  renderProfileCard();
+  const body = document.getElementById('profileCardBody');
+  if (body) body.classList.add('open');
 }
 
 async function saveProfileField(field, value) {
   if (!currentInspector) return;
-  if (field === 'trec') currentInspector.trecLicense = value;
+  currentInspector[field] = value;
   await saveInspector(currentInspector);
 }
 
