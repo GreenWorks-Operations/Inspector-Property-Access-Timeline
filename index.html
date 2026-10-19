@@ -2180,9 +2180,12 @@ function renderFeePanel() {
 
   const freqOptions = ['Monthly', 'Quarterly', 'Annual'];
 
+  const borKey = Object.keys(borData).find(k => borData[k].name === currentInspector.borChoiceName) || 'dallas';
+
   trackers.forEach(tracker => {
     const freq = (currentInspector.feeFreq || {})[tracker.key] || '';
     const freqLabel = freq ? `<span class="fee-freq-label">${freq}</span>` : '';
+    const dueBadge = buildDueDateBadge(borKey, tracker.key);
     html += `<div class="fee-section">
       <h5>${tracker.label}${freqLabel}
         ${!freq ? `<select style="margin-left:8px;font-size:11px;border-radius:6px;border:1px solid #ddd;padding:2px 6px;" onchange="saveFeeFreq('${tracker.key}',this.value)">
@@ -2190,6 +2193,7 @@ function renderFeePanel() {
           ${freqOptions.map(f => `<option value="${f}">${f}</option>`).join('')}
         </select>` : ''}
       </h5>
+      ${dueBadge}
       <div class="fee-month-grid">`;
 
     MONTHS.forEach((month, idx) => {
@@ -2225,6 +2229,87 @@ function renderFeePanel() {
   </div>`;
 
   panel.innerHTML = html;
+}
+
+// ── DUE DATE CALCULATION ──
+const BOR_DUE_SCHEDULES = {
+  // key: array of {month (0-based), day} objects = annual billing dates
+  dallas:       [{month:11, day:31}],                          // MetroTex: Dec 31
+  austin:       [{month:11, day:31}, {month:2, day:31}, {month:8, day:30}], // ABOR: Dec 31, Mar 31, Sep 30
+  houston:      [{month:11, day:1}],                           // HAR: Dec 1
+  sanantonio:   [{month:11, day:31}],                          // SABOR: Dec 31
+  fortworth:    [{month:11, day:31}],                          // GFWAR: Dec 31
+  arlington:    [{month:6, day:30}],                           // Arlington: Jul 30
+  plano:        [{month:11, day:31}],                          // CCAR: Dec 31
+  denton:       [{month:11, day:31}],
+  weatherford:  [{month:2, day:31}, {month:5, day:30}, {month:8, day:30}, {month:11, day:31}], // GMWAR: quarterly
+  corpuschristi:[{month:11, day:31}],
+  killeen:      [{month:11, day:31}],
+  temple:       [{month:11, day:31}],
+};
+
+const SUPRA_DUE_SCHEDULES = {
+  dallas:       [{month:2, day:31}, {month:5, day:30}, {month:8, day:30}, {month:11, day:31}], // MetroTex SUPRA: quarterly
+  austin:       [{month:2, day:31}, {month:8, day:30}],        // ABOR SUPRA: Mar 31 + Sep 30
+  houston:      [{month:11, day:31}],
+  default:      [{month:2, day:31}, {month:8, day:30}],        // fallback semi-annual
+};
+
+function getNextDueDate(borKey, trackerType) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  let schedule;
+  if (trackerType === 'bor_supra' || trackerType === 'bor') {
+    schedule = BOR_DUE_SCHEDULES[borKey] || BOR_DUE_SCHEDULES.dallas;
+  } else {
+    schedule = SUPRA_DUE_SCHEDULES[borKey] || SUPRA_DUE_SCHEDULES.default;
+  }
+
+  // Find the next upcoming date (this year or next)
+  const candidates = [];
+  for (let yearOffset = 0; yearOffset <= 1; yearOffset++) {
+    schedule.forEach(({month, day}) => {
+      const d = new Date(today.getFullYear() + yearOffset, month, day);
+      if (d >= today) candidates.push(d);
+    });
+  }
+  candidates.sort((a, b) => a - b);
+  return candidates[0] || null;
+}
+
+function formatDueDate(date) {
+  if (!date) return null;
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function daysUntil(date) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.ceil((date - today) / 86400000);
+}
+
+function buildDueDateBadge(borKey, trackerType) {
+  const next = getNextDueDate(borKey, trackerType);
+  if (!next) return '';
+  const days = daysUntil(next);
+  const formatted = formatDueDate(next);
+
+  let bg, color, label;
+  if (days <= 14) {
+    bg = 'radial-gradient(circle at 0% 0%, #c0392b, #e74c3c, #922b21)';
+    color = 'white';
+    label = `⚠️ Due in ${days} day${days === 1 ? '' : 's'} — ${formatted}`;
+  } else if (days <= 30) {
+    bg = 'radial-gradient(circle at 0% 0%, #c6a047, #e6c76a, #8a6b1f)';
+    color = '#3a2a00';
+    label = `📅 Due in ${days} days — ${formatted}`;
+  } else {
+    bg = '#f0f6f2';
+    color = 'var(--gw-green-dark)';
+    label = `📅 Next due: ${formatted} (${days} days)`;
+  }
+
+  return `<div style="margin-bottom:10px;padding:7px 12px;border-radius:7px;font-size:12px;font-weight:600;background:${bg};color:${color};">${label}</div>`;
 }
 
 function jumpToReimbursement(e) {
