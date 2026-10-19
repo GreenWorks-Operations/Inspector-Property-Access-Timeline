@@ -2164,6 +2164,8 @@ function renderFeePanel() {
   const fees = currentInspector.fees || {};
   const supraIncluded = currentInspector.supraIncluded;
 
+  const borKey = Object.keys(borData).find(k => borData[k].name === currentInspector.borChoiceName) || 'dallas';
+
   // Find soonest due date across all trackers for the main header
   const allTrackerKeys = supraIncluded ? ['bor_supra'] : ['bor','supra'];
   let soonestDate = null, soonestDays = Infinity;
@@ -2203,8 +2205,6 @@ function renderFeePanel() {
     : [{ key: 'bor', label: 'BOR Dues' }, { key: 'supra', label: 'SUPRA Dues' }];
 
   const freqOptions = ['Monthly', 'Quarterly', 'Annual'];
-
-  const borKey = Object.keys(borData).find(k => borData[k].name === currentInspector.borChoiceName) || 'dallas';
 
   trackers.forEach((tracker, tIdx) => {
     const freq = (currentInspector.feeFreq || {})[tracker.key] || '';
