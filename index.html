@@ -2213,6 +2213,11 @@ function renderFeePanel() {
   });
 
   html += `<div class="fee-nachi-note">📋 NACHI dues ($100/yr) are handled by GreenWorks — billed company-wide each October. Nothing to track here.</div>`;
+  const reimburseStageNum = (currentInspector.market === 'Colorado') ? 4 : 6;
+  html += `<div style="margin-top:10px;padding:10px 14px;background:radial-gradient(circle at 0% 0%, #c6a047, #e6c76a, #8a6b1f);border-radius:8px;font-size:12px;color:#3a2a00;font-weight:600;display:flex;align-items:center;justify-content:space-between;">
+    <span>💰 Ready to submit a receipt?</span>
+    <a href="#" style="color:#3a2a00;font-weight:700;text-decoration:none;background:rgba(255,255,255,0.25);padding:4px 10px;border-radius:20px;white-space:nowrap;" onclick="jumpToReimbursement(event)">→ Stage ${reimburseStageNum} — Reimbursement</a>
+  </div>`;
   html += `<div class="copy-msg-banner" id="copyMsgBanner">
     <strong>📋 Copy this into your AE channel:</strong>
     <div class="copy-text" id="copyMsgText"></div>
@@ -2220,6 +2225,17 @@ function renderFeePanel() {
   </div>`;
 
   panel.innerHTML = html;
+}
+
+function jumpToReimbursement(e) {
+  e.preventDefault();
+  const stageId = 6; // always stage id 6 in the DOM regardless of market
+  const item = document.getElementById('stageItem' + stageId);
+  const body = document.getElementById('body' + stageId);
+  if (item) {
+    item.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (body && !body.classList.contains('open')) body.classList.add('open');
+  }
 }
 
 async function setSupraIncluded(val) {
