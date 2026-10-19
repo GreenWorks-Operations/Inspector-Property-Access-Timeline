@@ -507,8 +507,16 @@
   .fee-panel-header { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
   .fee-panel-header h4 { font-size: 14px; color: var(--gw-green-dark); margin: 0 0 2px; }
   .fee-panel-header p { font-size: 12px; color: #888; margin: 0; }
-  .fee-section { padding: 14px 16px; border-bottom: 1px solid #f7f7f7; }
-  .fee-section h5 { font-size: 13px; font-weight: 700; color: var(--gw-blue); margin: 0 0 10px; }
+  .fee-section { border-bottom: 1px solid #f7f7f7; }
+  .fee-section-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; gap: 8px; }
+  .fee-section-header h5 { font-size: 13px; font-weight: 700; color: var(--gw-blue); margin: 0; flex: 1; }
+  .fee-section-due { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 12px; white-space: nowrap; }
+  .fee-section-due.urgent { background: radial-gradient(circle at 0% 0%, #c0392b, #e74c3c, #922b21); color: white; }
+  .fee-section-due.soon { background: radial-gradient(circle at 0% 0%, #c6a047, #e6c76a, #8a6b1f); color: #3a2a00; }
+  .fee-section-due.ok { background: #e8f5e9; color: var(--gw-green-dark); }
+  .fee-section-chevron { font-size: 13px; color: #aaa; flex-shrink: 0; }
+  .fee-section-body { padding: 0 16px 14px; display: none; }
+  .fee-section-body.open { display: block; }
   .fee-month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
   .fee-month-cell { background: #f7f5ef; border-radius: 8px; padding: 8px 6px; text-align: center; }
   .fee-month-cell .month-label { font-size: 10px; font-weight: 700; color: #888; text-transform: uppercase; margin-bottom: 4px; }
@@ -2182,18 +2190,35 @@ function renderFeePanel() {
 
   const borKey = Object.keys(borData).find(k => borData[k].name === currentInspector.borChoiceName) || 'dallas';
 
-  trackers.forEach(tracker => {
+  trackers.forEach((tracker, tIdx) => {
     const freq = (currentInspector.feeFreq || {})[tracker.key] || '';
     const freqLabel = freq ? `<span class="fee-freq-label">${freq}</span>` : '';
-    const dueBadge = buildDueDateBadge(borKey, tracker.key);
+    const sectionId = `fee-section-body-${tracker.key}`;
+    const chevId = `fee-section-chev-${tracker.key}`;
+
+    // Build the inline due date badge for the header
+    const next = getNextDueDate(borKey, tracker.key);
+    const days = next ? daysUntil(next) : null;
+    const dueFmt = next ? next.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) : null;
+    let dueClass = 'ok', dueText = '';
+    if (dueFmt) {
+      if (days <= 14) { dueClass = 'urgent'; dueText = `⚠️ Due ${dueFmt}`; }
+      else if (days <= 30) { dueClass = 'soon'; dueText = `📅 Due ${dueFmt}`; }
+      else { dueClass = 'ok'; dueText = `📅 ${dueFmt}`; }
+    }
+
     html += `<div class="fee-section">
-      <h5>${tracker.label}${freqLabel}
-        ${!freq ? `<select style="margin-left:8px;font-size:11px;border-radius:6px;border:1px solid #ddd;padding:2px 6px;" onchange="saveFeeFreq('${tracker.key}',this.value)">
-          <option value="">— Billing cycle —</option>
-          ${freqOptions.map(f => `<option value="${f}">${f}</option>`).join('')}
-        </select>` : ''}
-      </h5>
-      ${dueBadge}
+      <div class="fee-section-header" onclick="toggleFeeSection('${sectionId}','${chevId}')">
+        <h5>${tracker.label}${freqLabel}
+          ${!freq ? `<select style="margin-left:8px;font-size:11px;border-radius:6px;border:1px solid #ddd;padding:2px 6px;" onclick="event.stopPropagation()" onchange="saveFeeFreq('${tracker.key}',this.value)">
+            <option value="">— Billing cycle —</option>
+            ${freqOptions.map(f => `<option value="${f}">${f}</option>`).join('')}
+          </select>` : ''}
+        </h5>
+        ${dueFmt ? `<span class="fee-section-due ${dueClass}">${dueText}</span>` : ''}
+        <span class="fee-section-chevron" id="${chevId}">▾</span>
+      </div>
+      <div class="fee-section-body ${tIdx === 0 ? 'open' : ''}" id="${sectionId}">
       <div class="fee-month-grid">`;
 
     MONTHS.forEach((month, idx) => {
@@ -2213,7 +2238,7 @@ function renderFeePanel() {
       </div>`;
     });
 
-    html += `</div></div>`;
+    html += `</div></div></div>`;
   });
 
   html += `<div class="fee-nachi-note">📋 NACHI dues ($100/yr) are handled by GreenWorks — billed company-wide each October. Nothing to track here.</div>`;
@@ -2310,6 +2335,15 @@ function buildDueDateBadge(borKey, trackerType) {
   }
 
   return `<div style="margin-bottom:10px;padding:7px 12px;border-radius:7px;font-size:12px;font-weight:600;background:${bg};color:${color};">${label}</div>`;
+}
+
+function toggleFeeSection(bodyId, chevId) {
+  const body = document.getElementById(bodyId);
+  const chev = document.getElementById(chevId);
+  if (!body) return;
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  if (chev) chev.textContent = isOpen ? '▾' : '▴';
 }
 
 function jumpToReimbursement(e) {
