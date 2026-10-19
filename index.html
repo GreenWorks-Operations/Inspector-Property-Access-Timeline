@@ -504,8 +504,8 @@
 
   /* ── Fee Tracker Panel ── */
   .fee-panel { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
-  .fee-panel-header { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; }
-  .fee-panel-header h4 { font-size: 14px; color: var(--gw-green-dark); margin: 0 0 2px; }
+  .fee-panel-header { padding: 14px 16px; border-bottom: 1px solid #f0f0f0; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .fee-panel-header h4 { font-size: 14px; color: var(--gw-green-dark); margin: 0; }
   .fee-panel-header p { font-size: 12px; color: #888; margin: 0; }
   .fee-section { border-bottom: 1px solid #f7f7f7; }
   .fee-section-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; cursor: pointer; gap: 8px; }
@@ -2164,9 +2164,25 @@ function renderFeePanel() {
   const fees = currentInspector.fees || {};
   const supraIncluded = currentInspector.supraIncluded;
 
+  // Find soonest due date across all trackers for the main header
+  const allTrackerKeys = supraIncluded ? ['bor_supra'] : ['bor','supra'];
+  let soonestDate = null, soonestDays = Infinity;
+  allTrackerKeys.forEach(tk => {
+    const d = getNextDueDate(borKey, tk);
+    if (d) { const dd = daysUntil(d); if (dd < soonestDays) { soonestDays = dd; soonestDate = d; } }
+  });
+  let headerBadge = '';
+  if (soonestDate) {
+    const fmt = soonestDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    let bc = 'ok', bt = `📅 ${fmt}`;
+    if (soonestDays <= 14) { bc = 'urgent'; bt = `⚠️ Due ${fmt}`; }
+    else if (soonestDays <= 30) { bc = 'soon'; bt = `📅 Due ${fmt}`; }
+    headerBadge = `<span class="fee-section-due ${bc}" style="flex-shrink:0;">${bt}</span>`;
+  }
+
   let html = `<div class="fee-panel-header">
-    <h4>💳 Monthly Fee Tracker</h4>
-    <p>${currentInspector.borChoiceName}</p>
+    <div><h4>💳 Monthly Fee Tracker</h4><p>${currentInspector.borChoiceName}</p></div>
+    ${headerBadge}
   </div>`;
 
   // SUPRA toggle if not yet set
@@ -2215,7 +2231,7 @@ function renderFeePanel() {
             ${freqOptions.map(f => `<option value="${f}">${f}</option>`).join('')}
           </select>` : ''}
         </h5>
-        ${dueFmt ? `<span class="fee-section-due ${dueClass}">${dueText}</span>` : ''}
+
         <span class="fee-section-chevron" id="${chevId}">▾</span>
       </div>
       <div class="fee-section-body ${tIdx === 0 ? 'open' : ''}" id="${sectionId}">
