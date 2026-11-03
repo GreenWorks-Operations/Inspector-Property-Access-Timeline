@@ -1694,6 +1694,15 @@ function buildStageDetail(stage, done, isCurrent, displayNum) {
   } else if (isCurrent) {
     const btnText = stage.id === 1 ? '🔑 Let\'s get you access!' : stage.id === 6 ? '✓ All receipts submitted — I\'m done!' : '✓ Mark Stage ' + (displayNum || stage.id) + ' complete';
     const btnClass = stage.id === 6 ? 'confirm-btn gold' : 'confirm-btn';
+    if (stage.id === 6) {
+      html += `<div style="background:#fff3cd;border:2px solid #c6a047;border-radius:10px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:flex-start;gap:10px;">
+        <span style="font-size:22px;line-height:1;">⚠️</span>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:#7a4f00;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">DO NOT FORGET</div>
+          <div style="font-size:13px;font-weight:700;color:#5a3a00;line-height:1.5;">Submit a screenshot of your payment receipts in <strong>Inspector Payroll → General</strong>.<br>You will <u>not</u> get reimbursed without it.</div>
+        </div>
+      </div>`;
+    }
     html += `<button class="${btnClass}" onclick="completeStage(${stage.id},event)">${btnText}</button>`;
   }
 
