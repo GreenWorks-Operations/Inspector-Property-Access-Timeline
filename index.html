@@ -732,8 +732,28 @@
     <div class="checklist-main">
       <span class="back-link" onclick="showView('viewLanding')">← Back to home</span>
 
-      <!-- Fee Tracker Panel (shown after BOR selected) -->
-      <div class="fee-panel" id="feePanel" style="display:none;"></div>
+      <!-- Hub Tabs -->
+      <div class="hub-tabs">
+        <div class="hub-tab active" id="hubTabDetails" onclick="switchHubTab('details')">📄 My Details</div>
+        <div class="hub-tab" id="hubTabChecklist" onclick="switchHubTab('checklist')">📋 Checklist</div>
+      </div>
+
+      <!-- My Details Tab -->
+      <div class="hub-tab-panel active" id="hubPanelDetails">
+        <!-- Inspector greeting bar (shown in details tab) -->
+        <div class="inspector-greeting" id="detailsGreeting" style="display:none;">
+          <div class="inspector-avatar" id="detailsAvatarInitials">JD</div>
+          <div>
+            <h2 id="detailsGreetingName">Hey!</h2>
+            <p id="detailsGreetingMarket"></p>
+          </div>
+        </div>
+        <!-- Fee Tracker Panel -->
+        <div class="fee-panel" id="feePanel" style="display:none;"></div>
+      </div>
+
+      <!-- Checklist Tab -->
+      <div class="hub-tab-panel" id="hubPanelChecklist">
 
     <div class="inspector-greeting">
       <div class="inspector-avatar" id="avatarInitials">JD</div>
@@ -817,6 +837,7 @@
       </div>
 
       </div>
+      </div><!-- end hubPanelChecklist -->
     </div><!-- end checklist-main -->
 
     <!-- ── RIGHT: Sidebar ── -->
@@ -1137,6 +1158,7 @@ async function loadReturningInspector() {
   if (profileCard) profileCard.style.display = 'none';
   const borSupportBanner = document.getElementById('borSupportBanner');
   if (borSupportBanner) borSupportBanner.classList.remove('visible');
+  const dg = document.getElementById('detailsGreeting'); if (dg) dg.style.display = 'none';
   try {
     const existing = await loadInspectorData(name);
     if (existing) {
@@ -1173,6 +1195,7 @@ async function loadInspector() {
   if (profileCard) profileCard.style.display = 'none';
   const borSupportBanner2 = document.getElementById('borSupportBanner');
   if (borSupportBanner2) borSupportBanner2.classList.remove('visible');
+  const dg2 = document.getElementById('detailsGreeting'); if (dg2) dg2.style.display = 'none';
   let existing = await loadInspectorData(name);
   if (existing) {
     currentInspector = existing;
@@ -1705,12 +1728,32 @@ function countCompleted(stages, market) {
   return n;
 }
 
+
+function switchHubTab(tab) {
+  ['details','checklist'].forEach(t => {
+    document.getElementById('hubTab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
+    document.getElementById('hubPanel' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
+  });
+}
+
 function renderChecklist() {
   const i = currentInspector;
   const initials = i.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
   document.getElementById('avatarInitials').textContent = initials;
   document.getElementById('greetingName').textContent = 'Hey, ' + i.name.split(' ')[0] + '!';
   document.getElementById('greetingMarket').innerHTML = i.market + (i.hireDate ? ' · Hired ' + formatDate(i.hireDate) : '');
+  // Also populate details tab greeting
+  const detailsGreeting = document.getElementById('detailsGreeting');
+  if (detailsGreeting) {
+    document.getElementById('detailsAvatarInitials').textContent = initials;
+    document.getElementById('detailsGreetingName').textContent = 'Hey, ' + i.name.split(' ')[0] + '!';
+    document.getElementById('detailsGreetingMarket').innerHTML = i.market + (i.hireDate ? ' · Hired ' + formatDate(i.hireDate) : '');
+    detailsGreeting.style.display = 'flex';
+  }
+
+  // Auto-select tab: established inspectors (have BOR) land on Details, new ones on Checklist
+  const hasBoR = !!(i.borChoiceName);
+  switchHubTab(hasBoR ? 'details' : 'checklist');
 
   const stageIds = applicableStageIds(i.market);
   const visibleStages = stageIds.map(id => STAGES.find(s => s.id === id));
@@ -1721,6 +1764,13 @@ function renderChecklist() {
   const offset = circumference - (pct / 100) * circumference;
   document.getElementById('progressRingFill').style.strokeDashoffset = offset;
   document.getElementById('progressLabel').textContent = completed + ' of ' + total + ' stages complete';
+  // Update checklist tab badge
+  const checklistTab = document.getElementById('hubTabChecklist');
+  if (checklistTab) {
+    checklistTab.innerHTML = completed === total
+      ? '📋 Checklist <span style="background:var(--gw-green);color:white;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:4px;font-weight:700;">✓ Done</span>'
+      : '📋 Checklist <span style="background:#f0c040;color:#3a2a00;font-size:10px;padding:2px 7px;border-radius:10px;margin-left:4px;font-weight:700;">' + completed + '/' + total + '</span>';
+  }
 
   const subsStandard = [
     'Start with Stage 1 — hiring confirmation',
