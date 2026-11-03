@@ -489,6 +489,14 @@
   display: block;
 }
 
+  /* ── BOR Support Banner ── */
+  .bor-support-banner { display:none; align-items:center; gap:10px; background:#fffbe6; border:1px solid #f0c040; border-radius:var(--radius); padding:11px 14px; margin-bottom:12px; }
+  .bor-support-banner .bsr-icon { font-size:18px; flex-shrink:0; }
+  .bor-support-banner .bsr-text { font-size:12.5px; color:#555; line-height:1.4; }
+  .bor-support-banner .bsr-text strong { color:#333; }
+  .bor-support-banner .bsr-phone { display:inline-block; margin-top:3px; font-size:13px; font-weight:700; color:var(--gw-green-dark); text-decoration:none; }
+  .bor-support-banner .bsr-phone:hover { text-decoration:underline; }
+
   /* ── Profile Card ── */
   .profile-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
   .profile-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; }
@@ -701,6 +709,15 @@
 <div class="view" id="viewChecklist">
   <div class="checklist-wrap">
     <span class="back-link" onclick="showView('viewLanding')">← Back to home</span>
+
+    <!-- BOR Support Banner -->
+    <div class="bor-support-banner" id="borSupportBanner">
+      <div class="bsr-icon">📞</div>
+      <div class="bsr-text">
+        <strong>Having issues with your BOR access or SUPRA?</strong><br>
+        Call your BOR Member Services: <a class="bsr-phone" id="borSupportPhone" href="#"></a>
+      </div>
+    </div>
 
     <!-- Profile Card -->
     <div class="profile-card" id="profileCard" style="display:none;">
@@ -1065,6 +1082,8 @@ async function loadReturningInspector() {
   if (feePanel) { feePanel.style.display = 'none'; feePanel.innerHTML = ''; }
   const profileCard = document.getElementById('profileCard');
   if (profileCard) profileCard.style.display = 'none';
+  const borSupportBanner = document.getElementById('borSupportBanner');
+  if (borSupportBanner) borSupportBanner.style.display = 'none';
   try {
     const existing = await loadInspectorData(name);
     if (existing) {
@@ -1099,6 +1118,8 @@ async function loadInspector() {
   if (feePanel) { feePanel.style.display = 'none'; feePanel.innerHTML = ''; }
   const profileCard = document.getElementById('profileCard');
   if (profileCard) profileCard.style.display = 'none';
+  const borSupportBanner2 = document.getElementById('borSupportBanner');
+  if (borSupportBanner2) borSupportBanner2.style.display = 'none';
   let existing = await loadInspectorData(name);
   if (existing) {
     currentInspector = existing;
@@ -2174,6 +2195,20 @@ async function saveProfileField(field, value) {
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const CURRENT_MONTH = new Date().getMonth(); // 0-based
 
+function updateBorSupportBanner(borKey) {
+  const banner = document.getElementById('borSupportBanner');
+  const phoneEl = document.getElementById('borSupportPhone');
+  if (!banner || !phoneEl) return;
+  const phone = (borData[borKey] && borData[borKey].phone) || (borFeeInfo[borKey] && borFeeInfo[borKey].phone) || '';
+  if (phone) {
+    phoneEl.textContent = phone;
+    phoneEl.href = 'tel:' + phone.replace(/[^0-9]/g, '');
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
 function renderFeePanel() {
   if (!currentInspector || !currentInspector.borChoiceName) return;
   const panel = document.getElementById('feePanel');
@@ -2183,6 +2218,7 @@ function renderFeePanel() {
   const supraIncluded = currentInspector.supraIncluded;
 
   const borKey = Object.keys(borData).find(k => borData[k].name === currentInspector.borChoiceName) || 'dallas';
+  updateBorSupportBanner(borKey);
 
   // Find soonest due date across all trackers for the main header
   const allTrackerKeys = supraIncluded ? ['bor_supra'] : ['bor','supra'];
