@@ -489,16 +489,35 @@
   display: block;
 }
 
-  /* ── BOR Support Banner ── */
-  .bor-support-banner { display:none; align-items:center; gap:10px; background:#fffbe6; border:1px solid #f0c040; border-radius:var(--radius); padding:11px 14px; margin-bottom:12px; }
-  .bor-support-banner .bsr-icon { font-size:18px; flex-shrink:0; }
-  .bor-support-banner .bsr-text { font-size:12.5px; color:#555; line-height:1.4; }
-  .bor-support-banner .bsr-text strong { color:#333; }
-  .bor-support-banner .bsr-phone { display:inline-block; margin-top:3px; font-size:13px; font-weight:700; color:var(--gw-green-dark); text-decoration:none; }
-  .bor-support-banner .bsr-phone:hover { text-decoration:underline; }
+  /* ── Checklist Two-Column Layout ── */
+  .checklist-layout { display: flex; gap: 20px; align-items: flex-start; max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
+  .checklist-main { flex: 1; min-width: 0; }
+  .checklist-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 16px; display: flex; flex-direction: column; gap: 14px; }
+  @media (max-width: 800px) {
+    .checklist-layout { flex-direction: column; }
+    .checklist-sidebar { width: 100%; position: static; order: -1; }
+  }
+
+  /* ── BOR Support Card (sidebar) ── */
+  .bor-support-card { display:none; background:white; border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+  .bor-support-card.visible { display:block; }
+  .bor-support-card-header { background:var(--gw-green); color:white; padding:12px 14px; display:flex; align-items:center; gap:9px; }
+  .bor-support-card-header .bsc-icon { font-size:16px; }
+  .bor-support-card-header h4 { font-size:13px; font-weight:700; margin:0; line-height:1.3; }
+  .bor-support-card-body { padding:12px 14px; }
+  .bsc-bor-name { font-size:13px; font-weight:700; color:var(--gw-green-dark); margin-bottom:10px; line-height:1.3; }
+  .bsc-row { margin-bottom:9px; }
+  .bsc-label { font-size:10px; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:3px; }
+  .bsc-value { font-size:13px; color:#333; }
+  .bsc-phone-link { font-size:15px; font-weight:700; color:var(--gw-green-dark); text-decoration:none; display:flex; align-items:center; gap:6px; }
+  .bsc-phone-link:hover { text-decoration:underline; }
+  .bsc-counties { font-size:12px; color:#555; line-height:1.5; }
+  .bsc-website { font-size:12px; color:var(--gw-blue); text-decoration:none; }
+  .bsc-website:hover { text-decoration:underline; }
+  .bsc-divider { border:none; border-top:1px solid #f0f0f0; margin:10px 0; }
 
   /* ── Profile Card ── */
-  .profile-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 14px; overflow: hidden; }
+  .profile-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 0; overflow: hidden; }
   .profile-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; }
   .profile-card-header h4 { font-size: 14px; color: var(--gw-green-dark); margin: 0; }
   .profile-card-body { padding: 0 16px 16px; display: none; }
@@ -707,31 +726,14 @@
 </div>
 
 <div class="view" id="viewChecklist">
-  <div class="checklist-wrap">
-    <span class="back-link" onclick="showView('viewLanding')">← Back to home</span>
+  <div class="checklist-layout">
 
-    <!-- BOR Support Banner -->
-    <div class="bor-support-banner" id="borSupportBanner">
-      <div class="bsr-icon">📞</div>
-      <div class="bsr-text">
-        <strong>Having issues with your BOR access or SUPRA?</strong><br>
-        Call your BOR Member Services: <a class="bsr-phone" id="borSupportPhone" href="#"></a>
-      </div>
-    </div>
+    <!-- ── LEFT: Main checklist content ── -->
+    <div class="checklist-main">
+      <span class="back-link" onclick="showView('viewLanding')">← Back to home</span>
 
-    <!-- Profile Card -->
-    <div class="profile-card" id="profileCard" style="display:none;">
-      <div class="profile-card-header" onclick="toggleProfileCard()">
-        <h4>👤 Your Profile & Access Details</h4>
-        <span id="profileChevron">▾</span>
-      </div>
-      <div class="profile-card-body" id="profileCardBody">
-        <div id="profileCardContent"></div>
-      </div>
-    </div>
-
-    <!-- Fee Tracker Panel (shown after BOR selected) -->
-    <div class="fee-panel" id="feePanel" style="display:none;"></div>
+      <!-- Fee Tracker Panel (shown after BOR selected) -->
+      <div class="fee-panel" id="feePanel" style="display:none;"></div>
 
     <div class="inspector-greeting">
       <div class="inspector-avatar" id="avatarInitials">JD</div>
@@ -752,12 +754,12 @@
         <p id="progressSub">Start with Stage 1</p>
       </div>
     </div>
-    <div id="stageList"></div>
-    <div class="all-done-banner" id="allDoneBanner">
+      <div id="stageList"></div>
+      <div class="all-done-banner" id="allDoneBanner">
       <h2>🎉 You're fully set up!</h2>
       <p>All required stages complete. You now have full property access through GreenWorks. Welcome to the team.</p>
     </div>
-    <div id="additionalNotes" style="max-width:560px;margin:0 auto;padding:0 16px 20px;display:none;">
+    <div id="additionalNotes" style="display:none;">
 
   <!-- Congratulations Card -->
   <div class="stage-item current" style="border-color:var(--gw-gold);margin-bottom:14px;">
@@ -814,10 +816,61 @@
         </div>
       </div>
 
-    </div>
-  </div>
-</div>
-  </div>
+      </div>
+    </div><!-- end checklist-main -->
+
+    <!-- ── RIGHT: Sidebar ── -->
+    <div class="checklist-sidebar">
+
+      <!-- BOR Quick-Reference Card -->
+      <div class="bor-support-card" id="borSupportBanner">
+        <div class="bor-support-card-header">
+          <span class="bsc-icon">🏢</span>
+          <h4>Your BOR Quick Reference</h4>
+        </div>
+        <div class="bor-support-card-body">
+          <div class="bsc-bor-name" id="bscBorName"></div>
+
+          <div class="bsc-row" id="bscPhoneRow">
+            <div class="bsc-label">Member Services</div>
+            <a class="bsc-phone-link" id="borSupportPhone" href="#">
+              📞 <span id="bscPhoneText"></span>
+            </a>
+          </div>
+
+          <hr class="bsc-divider">
+
+          <div class="bsc-row" id="bscEmailRow" style="display:none;">
+            <div class="bsc-label">Email</div>
+            <div class="bsc-value" id="bscEmailVal"></div>
+          </div>
+
+          <div class="bsc-row" id="bscWebsiteRow" style="display:none;">
+            <div class="bsc-label">Website</div>
+            <a class="bsc-website" id="bscWebsiteVal" href="#" target="_blank"></a>
+          </div>
+
+          <div class="bsc-row" id="bscCountiesRow" style="display:none;">
+            <div class="bsc-label">Counties Served</div>
+            <div class="bsc-counties" id="bscCountiesVal"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Card (sidebar) -->
+      <div class="profile-card" id="profileCard" style="display:none;">
+        <div class="profile-card-header" onclick="toggleProfileCard()">
+          <h4>👤 Your Profile & Access Details</h4>
+          <span id="profileChevron">▾</span>
+        </div>
+        <div class="profile-card-body" id="profileCardBody">
+          <div id="profileCardContent"></div>
+        </div>
+      </div>
+
+    </div><!-- end checklist-sidebar -->
+
+  </div><!-- end checklist-layout -->
 </div>
 
 <!-- ══ ADMIN LOGIN ══ -->
@@ -1083,7 +1136,7 @@ async function loadReturningInspector() {
   const profileCard = document.getElementById('profileCard');
   if (profileCard) profileCard.style.display = 'none';
   const borSupportBanner = document.getElementById('borSupportBanner');
-  if (borSupportBanner) borSupportBanner.style.display = 'none';
+  if (borSupportBanner) borSupportBanner.classList.remove('visible');
   try {
     const existing = await loadInspectorData(name);
     if (existing) {
@@ -1119,7 +1172,7 @@ async function loadInspector() {
   const profileCard = document.getElementById('profileCard');
   if (profileCard) profileCard.style.display = 'none';
   const borSupportBanner2 = document.getElementById('borSupportBanner');
-  if (borSupportBanner2) borSupportBanner2.style.display = 'none';
+  if (borSupportBanner2) borSupportBanner2.classList.remove('visible');
   let existing = await loadInspectorData(name);
   if (existing) {
     currentInspector = existing;
@@ -2196,17 +2249,57 @@ const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 const CURRENT_MONTH = new Date().getMonth(); // 0-based
 
 function updateBorSupportBanner(borKey) {
-  const banner = document.getElementById('borSupportBanner');
+  const card = document.getElementById('borSupportBanner');
+  if (!card) return;
+  const bor = borData[borKey];
+  if (!bor || bor.unregulated) { card.classList.remove('visible'); return; }
+
+  const phone = bor.phone || (borFeeInfo[borKey] && borFeeInfo[borKey].phone) || '';
+  const email = bor.email && bor.email !== '—' ? bor.email : '';
+  const website = bor.website || '';
+  const counties = bor.counties && bor.counties.length ? bor.counties : [];
+
+  const nameEl = document.getElementById('bscBorName');
+  if (nameEl) nameEl.textContent = bor.name || '';
+
   const phoneEl = document.getElementById('borSupportPhone');
-  if (!banner || !phoneEl) return;
-  const phone = (borData[borKey] && borData[borKey].phone) || (borFeeInfo[borKey] && borFeeInfo[borKey].phone) || '';
-  if (phone) {
-    phoneEl.textContent = phone;
-    phoneEl.href = 'tel:' + phone.replace(/[^0-9]/g, '');
-    banner.style.display = 'flex';
-  } else {
-    banner.style.display = 'none';
+  const phoneText = document.getElementById('bscPhoneText');
+  const phoneRow = document.getElementById('bscPhoneRow');
+  if (phoneEl && phoneText && phoneRow) {
+    if (phone) {
+      phoneText.textContent = phone;
+      phoneEl.href = 'tel:' + phone.replace(/[^0-9]/g, '');
+      phoneRow.style.display = 'block';
+    } else { phoneRow.style.display = 'none'; }
   }
+
+  const emailRow = document.getElementById('bscEmailRow');
+  const emailVal = document.getElementById('bscEmailVal');
+  if (emailRow && emailVal) {
+    if (email) { emailVal.textContent = email; emailRow.style.display = 'block'; }
+    else { emailRow.style.display = 'none'; }
+  }
+
+  const websiteRow = document.getElementById('bscWebsiteRow');
+  const websiteVal = document.getElementById('bscWebsiteVal');
+  if (websiteRow && websiteVal) {
+    if (website) {
+      websiteVal.textContent = website;
+      websiteVal.href = 'https://' + website.replace(/^https?:\/\//, '');
+      websiteRow.style.display = 'block';
+    } else { websiteRow.style.display = 'none'; }
+  }
+
+  const countiesRow = document.getElementById('bscCountiesRow');
+  const countiesVal = document.getElementById('bscCountiesVal');
+  if (countiesRow && countiesVal) {
+    if (counties.length) {
+      countiesVal.textContent = counties.join(', ');
+      countiesRow.style.display = 'block';
+    } else { countiesRow.style.display = 'none'; }
+  }
+
+  card.classList.add('visible');
 }
 
 function renderFeePanel() {
