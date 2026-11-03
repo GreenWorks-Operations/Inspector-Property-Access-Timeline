@@ -489,16 +489,23 @@
   display: block;
 }
 
-  /* ── Checklist Two-Column Layout ── */
-  .checklist-layout { display: flex; gap: 20px; align-items: flex-start; max-width: 1100px; margin: 0 auto; padding: 20px 16px 60px; }
-  .checklist-main { flex: 1; min-width: 0; }
-  .checklist-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 16px; display: flex; flex-direction: column; gap: 14px; }
-  @media (max-width: 800px) {
-    .checklist-layout { flex-direction: column; }
-    .checklist-sidebar { width: 100%; position: static; order: -1; }
+  /* ── Hub Tabs ── */
+  .hub-tabs { display:flex; gap:8px; margin-bottom:20px; }
+  .hub-tab {
+    flex:1; padding:10px 16px; font-size:13px; font-weight:700;
+    color:#666; cursor:pointer; border-radius:8px;
+    border:2px solid #e0e0e0; background:#f7f7f7;
+    text-align:center; transition:all 0.15s; user-select:none;
   }
+  .hub-tab:hover { border-color:var(--gw-green); color:var(--gw-green-dark); background:#f0f7f0; }
+  .hub-tab.active {
+    background:var(--gw-green); color:white;
+    border-color:var(--gw-green); box-shadow:0 2px 8px rgba(46,125,50,0.25);
+  }
+  .hub-tab-panel { display:none; }
+  .hub-tab-panel.active { display:block; }
 
-  /* ── BOR Support Card (sidebar) ── */
+  /* ── BOR Support Card (Details tab) ── */
   .bor-support-card { display:none; background:white; border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
   .bor-support-card.visible { display:block; }
   .bor-support-card-header { background:var(--gw-green); color:white; padding:12px 14px; display:flex; align-items:center; gap:9px; }
@@ -726,60 +733,102 @@
 </div>
 
 <div class="view" id="viewChecklist">
-  <div class="checklist-layout">
+  <div class="checklist-wrap">
+    <span class="back-link" onclick="showView('viewLanding')">← Back to home</span>
 
-    <!-- ── LEFT: Main checklist content ── -->
-    <div class="checklist-main">
-      <span class="back-link" onclick="showView('viewLanding')">← Back to home</span>
+    <!-- Hub Tabs -->
+    <div class="hub-tabs">
+      <div class="hub-tab active" id="hubTabDetails" onclick="switchHubTab('details')">📄 My Details</div>
+      <div class="hub-tab" id="hubTabChecklist" onclick="switchHubTab('checklist')">📋 Checklist</div>
+    </div>
 
-      <!-- Hub Tabs -->
-      <div class="hub-tabs">
-        <div class="hub-tab active" id="hubTabDetails" onclick="switchHubTab('details')">📄 My Details</div>
-        <div class="hub-tab" id="hubTabChecklist" onclick="switchHubTab('checklist')">📋 Checklist</div>
+    <!-- ── MY DETAILS TAB ── -->
+    <div class="hub-tab-panel active" id="hubPanelDetails" style="display:block;">
+
+      <!-- Inspector greeting -->
+      <div class="inspector-greeting" id="detailsGreeting" style="display:none;">
+        <div class="inspector-avatar" id="detailsAvatarInitials">JD</div>
+        <div>
+          <h2 id="detailsGreetingName">Hey!</h2>
+          <p id="detailsGreetingMarket"></p>
+        </div>
       </div>
 
-      <!-- My Details Tab -->
-      <div class="hub-tab-panel active" id="hubPanelDetails" style="display:block;">
-        <!-- Inspector greeting bar (shown in details tab) -->
-        <div class="inspector-greeting" id="detailsGreeting" style="display:none;">
-          <div class="inspector-avatar" id="detailsAvatarInitials">JD</div>
-          <div>
-            <h2 id="detailsGreetingName">Hey!</h2>
-            <p id="detailsGreetingMarket"></p>
+      <!-- BOR Quick-Reference Card -->
+      <div class="bor-support-card" id="borSupportBanner">
+        <div class="bor-support-card-header">
+          <span class="bsc-icon">🏢</span>
+          <h4>Your BOR Quick Reference</h4>
+        </div>
+        <div class="bor-support-card-body">
+          <div class="bsc-bor-name" id="bscBorName"></div>
+          <div class="bsc-row" id="bscPhoneRow">
+            <div class="bsc-label">Member Services</div>
+            <a class="bsc-phone-link" id="borSupportPhone" href="#">
+              📞 <span id="bscPhoneText"></span>
+            </a>
+          </div>
+          <hr class="bsc-divider">
+          <div class="bsc-row" id="bscEmailRow" style="display:none;">
+            <div class="bsc-label">Email</div>
+            <div class="bsc-value" id="bscEmailVal"></div>
+          </div>
+          <div class="bsc-row" id="bscWebsiteRow" style="display:none;">
+            <div class="bsc-label">Website</div>
+            <a class="bsc-website" id="bscWebsiteVal" href="#" target="_blank"></a>
+          </div>
+          <div class="bsc-row" id="bscCountiesRow" style="display:none;">
+            <div class="bsc-label">Counties Served</div>
+            <div class="bsc-counties" id="bscCountiesVal"></div>
           </div>
         </div>
-        <!-- Fee Tracker Panel -->
-        <div class="fee-panel" id="feePanel" style="display:none;"></div>
       </div>
 
-      <!-- Checklist Tab -->
-      <div class="hub-tab-panel" id="hubPanelChecklist" style="display:none;">
+      <!-- Profile Card -->
+      <div class="profile-card" id="profileCard" style="display:none;">
+        <div class="profile-card-header" onclick="toggleProfileCard()">
+          <h4>👤 Your Profile & Access Details</h4>
+          <span id="profileChevron">▾</span>
+        </div>
+        <div class="profile-card-body" id="profileCardBody">
+          <div id="profileCardContent"></div>
+        </div>
+      </div>
 
-    <div class="inspector-greeting">
-      <div class="inspector-avatar" id="avatarInitials">JD</div>
-      <div>
-        <h2 id="greetingName">Hey!</h2>
-        <p id="greetingMarket"></p>
+      <!-- Fee Tracker Panel -->
+      <div class="fee-panel" id="feePanel" style="display:none;"></div>
+
+    </div><!-- end hubPanelDetails -->
+
+    <!-- ── CHECKLIST TAB ── -->
+    <div class="hub-tab-panel" id="hubPanelChecklist" style="display:none;">
+
+      <div class="inspector-greeting">
+        <div class="inspector-avatar" id="avatarInitials">JD</div>
+        <div>
+          <h2 id="greetingName">Hey!</h2>
+          <p id="greetingMarket"></p>
+        </div>
       </div>
-    </div>
-    <div class="progress-summary">
-      <div class="progress-ring-wrap">
-        <svg width="64" height="64" class="progress-ring">
-          <circle class="progress-ring-bg" cx="32" cy="32" r="26"/>
-          <circle class="progress-ring-fill" id="progressRingFill" cx="32" cy="32" r="26" stroke-dasharray="163.4" stroke-dashoffset="163.4"/>
-        </svg>
+      <div class="progress-summary">
+        <div class="progress-ring-wrap">
+          <svg width="64" height="64" class="progress-ring">
+            <circle class="progress-ring-bg" cx="32" cy="32" r="26"/>
+            <circle class="progress-ring-fill" id="progressRingFill" cx="32" cy="32" r="26" stroke-dasharray="163.4" stroke-dashoffset="163.4"/>
+          </svg>
+        </div>
+        <div class="progress-text">
+          <h3 id="progressLabel">Loading...</h3>
+          <p id="progressSub">Start with Stage 1</p>
+        </div>
       </div>
-      <div class="progress-text">
-        <h3 id="progressLabel">Loading...</h3>
-        <p id="progressSub">Start with Stage 1</p>
-      </div>
-    </div>
       <div id="stageList"></div>
       <div class="all-done-banner" id="allDoneBanner">
-      <h2>🎉 You're fully set up!</h2>
-      <p>All required stages complete. You now have full property access through GreenWorks. Welcome to the team.</p>
-    </div>
-    <div id="additionalNotes" style="display:none;">
+        <h2>🎉 You're fully set up!</h2>
+        <p>All required stages complete. You now have full property access through GreenWorks. Welcome to the team.</p>
+      </div>
+
+<div id="additionalNotes" style="display:none;">
 
   <!-- Congratulations Card -->
   <div class="stage-item current" style="border-color:var(--gw-gold);margin-bottom:14px;">
@@ -841,57 +890,7 @@
     </div><!-- end checklist-main -->
 
     <!-- ── RIGHT: Sidebar ── -->
-    <div class="checklist-sidebar">
-
-      <!-- BOR Quick-Reference Card -->
-      <div class="bor-support-card" id="borSupportBanner">
-        <div class="bor-support-card-header">
-          <span class="bsc-icon">🏢</span>
-          <h4>Your BOR Quick Reference</h4>
-        </div>
-        <div class="bor-support-card-body">
-          <div class="bsc-bor-name" id="bscBorName"></div>
-
-          <div class="bsc-row" id="bscPhoneRow">
-            <div class="bsc-label">Member Services</div>
-            <a class="bsc-phone-link" id="borSupportPhone" href="#">
-              📞 <span id="bscPhoneText"></span>
-            </a>
-          </div>
-
-          <hr class="bsc-divider">
-
-          <div class="bsc-row" id="bscEmailRow" style="display:none;">
-            <div class="bsc-label">Email</div>
-            <div class="bsc-value" id="bscEmailVal"></div>
-          </div>
-
-          <div class="bsc-row" id="bscWebsiteRow" style="display:none;">
-            <div class="bsc-label">Website</div>
-            <a class="bsc-website" id="bscWebsiteVal" href="#" target="_blank"></a>
-          </div>
-
-          <div class="bsc-row" id="bscCountiesRow" style="display:none;">
-            <div class="bsc-label">Counties Served</div>
-            <div class="bsc-counties" id="bscCountiesVal"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Profile Card (sidebar) -->
-      <div class="profile-card" id="profileCard" style="display:none;">
-        <div class="profile-card-header" onclick="toggleProfileCard()">
-          <h4>👤 Your Profile & Access Details</h4>
-          <span id="profileChevron">▾</span>
-        </div>
-        <div class="profile-card-body" id="profileCardBody">
-          <div id="profileCardContent"></div>
-        </div>
-      </div>
-
-    </div><!-- end checklist-sidebar -->
-
-  </div><!-- end checklist-layout -->
+</div><!-- end checklist-wrap -->
 </div>
 
 <!-- ══ ADMIN LOGIN ══ -->
