@@ -739,7 +739,7 @@
       </div>
 
       <!-- My Details Tab -->
-      <div class="hub-tab-panel active" id="hubPanelDetails">
+      <div class="hub-tab-panel active" id="hubPanelDetails" style="display:block;">
         <!-- Inspector greeting bar (shown in details tab) -->
         <div class="inspector-greeting" id="detailsGreeting" style="display:none;">
           <div class="inspector-avatar" id="detailsAvatarInitials">JD</div>
@@ -753,7 +753,7 @@
       </div>
 
       <!-- Checklist Tab -->
-      <div class="hub-tab-panel" id="hubPanelChecklist">
+      <div class="hub-tab-panel" id="hubPanelChecklist" style="display:none;">
 
     <div class="inspector-greeting">
       <div class="inspector-avatar" id="avatarInitials">JD</div>
@@ -1730,9 +1730,15 @@ function countCompleted(stages, market) {
 
 
 function switchHubTab(tab) {
-  ['details','checklist'].forEach(t => {
-    document.getElementById('hubTab' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
-    document.getElementById('hubPanel' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === tab);
+  const tabs = {details: ['hubTabDetails','hubPanelDetails'], checklist: ['hubTabChecklist','hubPanelChecklist']};
+  Object.entries(tabs).forEach(([t, [tabId, panelId]]) => {
+    const tabEl = document.getElementById(tabId);
+    const panelEl = document.getElementById(panelId);
+    if (tabEl) tabEl.classList.toggle('active', t === tab);
+    if (panelEl) {
+      panelEl.style.display = (t === tab) ? 'block' : 'none';
+      panelEl.classList.toggle('active', t === tab);
+    }
   });
 }
 
