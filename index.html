@@ -2374,7 +2374,13 @@ function renderFeePanel() {
   const fees = currentInspector.fees || {};
   const supraIncluded = currentInspector.supraIncluded;
 
-  const borKey = Object.keys(borData).find(k => borData[k].name === currentInspector.borChoiceName) || 'dallas';
+  const borKey = Object.keys(borData).find(k => borData[k].name === currentInspector.borChoiceName)
+    || Object.keys(borData).find(k => borData[k].name && currentInspector.borChoiceName && (
+        borData[k].name.toLowerCase().includes(currentInspector.borChoiceName.toLowerCase().split(' ').slice(0,3).join(' ').toLowerCase()) ||
+        currentInspector.borChoiceName.toLowerCase().includes(borData[k].name.toLowerCase().split(' ').slice(0,3).join(' ').toLowerCase())
+      ))
+    || (currentInspector.market && Object.keys(borData).find(k => borData[k].markets && borData[k].markets.includes(currentInspector.market)))
+    || 'dallas';
   updateBorSupportBanner(borKey);
 
   // Find soonest due date across all trackers for the main header
