@@ -1765,9 +1765,14 @@ function renderChecklist() {
     detailsGreeting.style.display = 'flex';
   }
 
-  // Auto-select tab: established inspectors (have BOR) land on Details, new ones on Checklist
-  const hasBoR = !!(i.borChoiceName);
-  switchHubTab(hasBoR ? 'details' : 'checklist');
+  // Auto-select tab only on first load; preserve current tab on re-renders (e.g. after completing a stage)
+  const currentTab = document.getElementById('hubTabChecklist') && document.getElementById('hubTabChecklist').classList.contains('active') ? 'checklist'
+    : document.getElementById('hubTabDetails') && document.getElementById('hubTabDetails').classList.contains('active') ? 'details'
+    : null;
+  if (!currentTab) {
+    const hasBoR = !!(i.borChoiceName);
+    switchHubTab(hasBoR ? 'details' : 'checklist');
+  }
 
   const stageIds = applicableStageIds(i.market);
   const visibleStages = stageIds.map(id => STAGES.find(s => s.id === id));
