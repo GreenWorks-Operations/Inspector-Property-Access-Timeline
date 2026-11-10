@@ -739,7 +739,7 @@
     <!-- Hub Tabs -->
     <div class="hub-tabs">
       <div class="hub-tab active" id="hubTabDetails" onclick="switchHubTab('details')">📄 My Details</div>
-      <div class="hub-tab" id="hubTabChecklist" onclick="switchHubTab('checklist')">📋 Checklist</div>
+      <div class="hub-tab" id="hubTabChecklist" onclick="switchHubTab('checklist');maybeShowBorPopup()">📋 Checklist</div>
     </div>
 
     <!-- ── MY DETAILS TAB ── -->
@@ -802,6 +802,25 @@
 
     <!-- ── CHECKLIST TAB ── -->
     <div class="hub-tab-panel" id="hubPanelChecklist" style="display:none;">
+
+      <!-- Existing BOR popup -->
+      <div id="existingBorPopup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:1000;display:none;align-items:flex-end;justify-content:center;padding:16px;">
+        <div style="background:white;border-radius:16px;overflow:hidden;width:100%;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+          <div style="background:#c6a047;padding:13px 18px;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:20px;">🚨</span>
+            <span style="font-size:11px;font-weight:800;color:white;text-transform:uppercase;letter-spacing:1px;">Read this before entering checklist</span>
+          </div>
+          <div style="padding:18px 18px 14px;">
+            <div style="font-size:15px;font-weight:800;color:#444;margin-bottom:10px;line-height:1.4;">You already completed this — without knowing it.</div>
+            <div style="font-size:13px;color:#555;line-height:1.6;margin-bottom:16px;">
+              You have an active BOR and SUPRA, so you're set. This checklist exists so you understand the associations, fees, and processes — because <strong>you'll be managing your own BOR and SUPRA dues going forward.</strong>
+              <br><br>Think of it as a reference, not a to-do list.
+            </div>
+            <button onclick="document.getElementById('existingBorPopup').style.display='none'" style="width:100%;padding:12px;background:var(--gw-green);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Got it — take me to the checklist</button>
+            <span onclick="localStorage.setItem('borPopupDismissed','1');document.getElementById('existingBorPopup').style.display='none'" style="display:block;text-align:center;margin-top:10px;font-size:12px;color:#999;cursor:pointer;padding:4px;">Don't show this again</span>
+          </div>
+        </div>
+      </div>
 
       <div class="inspector-greeting">
         <div class="inspector-avatar" id="avatarInitials">JD</div>
@@ -1736,6 +1755,16 @@ function countCompleted(stages, market) {
   return n;
 }
 
+
+function maybeShowBorPopup() {
+  if (!currentInspector || !currentInspector.borChoiceName) return;
+  try { if (localStorage.getItem('borPopupDismissed_' + currentInspector.name) === '1') return; } catch(e) {}
+  const popup = document.getElementById('existingBorPopup');
+  if (popup) popup.style.display = 'flex';
+  // wire "don't show again" to save per-inspector key
+  const dismiss = popup && popup.querySelector('span[onclick]');
+  if (dismiss) dismiss.setAttribute('onclick', `try{localStorage.setItem('borPopupDismissed_${currentInspector.name}','1')}catch(e){}; document.getElementById('existingBorPopup').style.display='none'`);
+}
 
 function switchHubTab(tab) {
   const tabs = {details: ['hubTabDetails','hubPanelDetails'], checklist: ['hubTabChecklist','hubPanelChecklist']};
