@@ -814,7 +814,8 @@
             <div style="font-size:15px;font-weight:800;color:#444;margin-bottom:10px;line-height:1.4;">You already completed this — without knowing it.</div>
             <div style="font-size:13px;color:#555;line-height:1.6;margin-bottom:16px;">
               You have an active BOR and SUPRA, so you're set. This checklist exists so you understand the associations, fees, and processes — because <strong>you'll be managing your own BOR and SUPRA dues going forward.</strong>
-              <br><br>Think of it as a reference, not a to-do list.
+              <br><br>Your BOR and SUPRA contact details, counties served, and profile info are all under the <strong>📄 My Details</strong> tab.
+              <br><br>Think of this as a reference, not a to-do list.
             </div>
             <button onclick="document.getElementById('existingBorPopup').style.display='none'" style="width:100%;padding:12px;background:var(--gw-green);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;">Got it — take me to the checklist</button>
             <span onclick="localStorage.setItem('borPopupDismissed','1');document.getElementById('existingBorPopup').style.display='none'" style="display:block;text-align:center;margin-top:10px;font-size:12px;color:#999;cursor:pointer;padding:4px;">Don't show this again</span>
@@ -1033,8 +1034,14 @@ async function fbSet(path, data) {
 
 async function fbGet(path) {
   const res = await fetch(`${FB_URL}/${path}.json`);
-  if (!res.ok) throw new Error('Firebase read failed: ' + res.status);
-  return res.json();
+  if (!res.ok) {
+    const body = await res.text();
+    console.error('Firebase read failed:', res.status, body);
+    throw new Error('Firebase read failed: ' + res.status + ' ' + body);
+  }
+  const data = await res.json();
+  console.log('fbGet', path, '->', data === null ? 'NULL (no data)' : typeof data === 'object' ? Object.keys(data).length + ' keys' : data);
+  return data;
 }
 
 async function fbDelete(path) {
