@@ -1948,7 +1948,20 @@ function formatDate(dateStr) {
 // ══ ADMIN ══
 async function renderAdminDashboard() {
   document.getElementById('adminStats').innerHTML = `<div style="color:#aaa;font-size:13px;padding:8px;">Loading...</div>`;
-  const all = await getAllInspectors();
+  let all;
+  try {
+    all = await getAllInspectors();
+  } catch(e) {
+    document.getElementById('adminStats').innerHTML = `<div style="color:red;font-size:13px;padding:8px;">❌ Error loading data: ${e.message}</div>`;
+    return;
+  }
+  if (!all || all.length === 0) {
+    document.getElementById('adminStats').innerHTML = `<div style="color:#c00;font-size:13px;padding:12px;background:#fff3f3;border-radius:8px;">
+      ⚠️ No inspector data found. Firebase may be unreachable or the database is empty.<br>
+      <small style="color:#888;">URL: ${FB_URL}/inspectors.json</small>
+    </div>`;
+    return;
+  }
   const total = all.length;
   const complete = all.filter(i => countCompleted(i.stages, i.market) === applicableStageIds(i.market).length).length;
   const inProgress = all.filter(i => { const c = countCompleted(i.stages, i.market); const t = applicableStageIds(i.market).length; return c > 0 && c < t; }).length;
