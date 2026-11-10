@@ -525,8 +525,9 @@
 
   /* ── Profile Card ── */
   .profile-card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 0; overflow: hidden; }
-  .profile-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; }
-  .profile-card-header h4 { font-size: 14px; color: var(--gw-green-dark); margin: 0; }
+  .profile-card-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; cursor: pointer; background: var(--gw-green); border-radius: var(--radius) var(--radius) 0 0; }
+  .profile-card-header h4 { font-size: 14px; color: white; margin: 0; }
+  .profile-card-header span { color: white; }
   .profile-card-body { padding: 0 16px 16px; display: none; }
   .profile-card-body.open { display: block; }
   .profile-field { margin-bottom: 12px; }
